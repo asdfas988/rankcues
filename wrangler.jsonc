@@ -1,0 +1,45 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rankcues-preview",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "rankcues-preview"
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "c90c4b7f1611457eac131eb3d4f78165"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "DATABASE_SSL": "require",
+    "DATABASE_POOL_SIZE": "1",
+    "DATABASE_SCHEMA_MANAGED": "true",
+    "DEFAULT_WORKSPACE_ID": "default",
+    "GSC_MAX_ROWS_PER_SYNC": "25000",
+    "AI_PROVIDER_NAME": "180275-relay",
+    "AI_BASE_URL": "https://api.180275.xyz/v1",
+    "AI_MODEL": "gpt-5.6-sol",
+    "AI_SUPPORTS_STRUCTURED_OUTPUTS": "false",
+    "GITHUB_APP_ID": "4373280",
+    "GITHUB_APP_SLUG": "rankcues-seo-operator"
+  }
+}

@@ -1,26 +1,274 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #0a0d0c;
+  --forest: #101714;
+  --forest-soft: #18221e;
+  --ivory: #f3f0e8;
+  --paper: #fcfaf5;
+  --paper-deep: #e9e4d9;
+  --champagne: #c9a66b;
+  --champagne-soft: #ead9bc;
+  --teal: #59b8a7;
+  --coral: #e87962;
+  --cobalt: #6e8deb;
+  --muted: #66706a;
+  --line: rgba(10, 13, 12, 0.11);
+  --line-dark: rgba(255, 255, 255, 0.1);
+  --background: var(--ivory);
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --popover: #ffffff;
+  --popover-foreground: #111827;
+  --primary: #111827;
+  --primary-foreground: #ffffff;
+  --secondary: #eef1f6;
+  --secondary-foreground: #344054;
+  --muted-ui: #f2f4f7;
+  --muted-foreground: #667085;
+  --accent: #eef1ff;
+  --accent-foreground: #4659bc;
+  --destructive: #d92d20;
+  --border: #e2e7ef;
+  --input: #d0d5dd;
+  --ring: #6177f2;
+  --radius: 0.625rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted-ui);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: "Manrope", "Manrope Fallback", ui-sans-serif, sans-serif;
+  --font-display: "Newsreader", "Newsreader Fallback", ui-serif, Georgia, serif;
+  --font-mono: "IBM Plex Mono", "IBM Plex Mono Fallback", ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--ivory);
+  color: var(--ink);
+  font-family: var(--font-manrope), ui-sans-serif, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+.data-card {
+  border: 1px solid #e2e7ef;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03), 0 12px 32px rgba(16, 24, 40, 0.04);
+}
+
+.data-panel {
+  border: 1px solid #e2e7ef;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.025), 0 18px 45px rgba(16, 24, 40, 0.035);
+}
+
+.status-dot {
+  box-shadow: 0 0 0 4px rgba(57, 214, 186, 0.12);
+}
+
+button,
+a,
+input,
+select {
+  font: inherit;
+}
+
+a {
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--champagne-soft);
+  color: var(--ink);
+}
+
+.font-display,
+.section-title {
+  font-family: var(--font-newsreader), ui-serif, Georgia, serif;
+}
+
+.font-mono,
+.section-kicker {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+}
+
+.section-kicker {
+  color: #8a6a39;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.section-title {
+  margin-top: 0.8rem;
+  max-width: 780px;
+  font-size: clamp(2.5rem, 6vw, 5.4rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.93;
+}
+
+.luxury-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, black 30%, transparent 94%);
+}
+
+.paper-grid,
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(10, 13, 12, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10, 13, 12, 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.grain::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  opacity: 0.055;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.65'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+.premium-card {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(252, 250, 245, 0.9);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 70px rgba(17, 24, 20, 0.07);
+}
+
+.info-prose h2 {
+  margin-top: 2rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.info-prose h2:first-child {
+  margin-top: 0;
+}
+
+.info-prose p {
+  margin-top: 0.65rem;
+  color: #66706a;
+  font-size: 0.92rem;
+  line-height: 1.85;
+}
+
+.dark-card {
+  border: 1px solid var(--line-dark);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+.evidence-rail {
+  position: relative;
+}
+
+.evidence-rail::before {
+  position: absolute;
+  top: 0.55rem;
+  bottom: -1.15rem;
+  left: 0.4rem;
+  width: 1px;
+  content: "";
+  background: linear-gradient(var(--champagne), rgba(201, 166, 107, 0.08));
+}
+
+.reveal {
+  animation: reveal 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.reveal-delay-1 {
+  animation-delay: 100ms;
+}
+
+.reveal-delay-2 {
+  animation-delay: 190ms;
+}
+
+.reveal-delay-3 {
+  animation-delay: 280ms;
+}
+
+.text-\[8px\] {
+  font-size: 0.6875rem;
+}
+
+.text-\[9px\] {
+  font-size: 0.71875rem;
+}
+
+.text-\[10px\] {
+  font-size: 0.75rem;
+}
+
+:focus-visible {
+  outline: 2px solid #6177f2;
+  outline-offset: 3px;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal,
+  .reveal-delay-1,
+  .reveal-delay-2,
+  .reveal-delay-3 {
+    animation: none;
+  }
 }
