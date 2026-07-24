@@ -2,19 +2,19 @@
 
 :root {
   --ink: #0a0d0c;
-  --forest: #101714;
-  --forest-soft: #18221e;
-  --ivory: #f3f0e8;
-  --paper: #fcfaf5;
-  --paper-deep: #e9e4d9;
+  --forest: #0e1512;
+  --forest-soft: #16211c;
+  --ivory: #f4f1ea;
+  --paper: #fdfbf6;
+  --paper-deep: #eae5da;
   --champagne: #c9a66b;
   --champagne-soft: #ead9bc;
-  --teal: #59b8a7;
+  --teal: #4db8a4;
   --coral: #e87962;
   --cobalt: #6e8deb;
-  --muted: #66706a;
-  --line: rgba(10, 13, 12, 0.11);
-  --line-dark: rgba(255, 255, 255, 0.1);
+  --muted: #5f6b63;
+  --line: rgba(10, 13, 12, 0.09);
+  --line-dark: rgba(255, 255, 255, 0.08);
   --background: var(--ivory);
   --foreground: var(--ink);
   --card: #ffffff;
@@ -79,24 +79,41 @@ body {
   color: var(--ink);
   font-family: var(--font-manrope), ui-sans-serif, sans-serif;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .data-card {
-  border: 1px solid #e2e7ef;
+  border: 1px solid #e3e8f0;
   border-radius: 14px;
   background: #ffffff;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03), 0 12px 32px rgba(16, 24, 40, 0.04);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.04),
+    0 4px 12px rgba(16, 24, 40, 0.03),
+    0 16px 40px rgba(16, 24, 40, 0.03);
+  transition: border-color 220ms ease, box-shadow 320ms ease;
+}
+
+.data-card:hover {
+  border-color: #ccd6e4;
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.05),
+    0 8px 20px rgba(16, 24, 40, 0.05),
+    0 24px 48px rgba(16, 24, 40, 0.05);
 }
 
 .data-panel {
-  border: 1px solid #e2e7ef;
+  border: 1px solid #e3e8f0;
   border-radius: 16px;
   background: #ffffff;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.025), 0 18px 45px rgba(16, 24, 40, 0.035);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.03),
+    0 6px 16px rgba(16, 24, 40, 0.03),
+    0 24px 56px rgba(16, 24, 40, 0.04);
 }
 
 .status-dot {
-  box-shadow: 0 0 0 4px rgba(57, 214, 186, 0.12);
+  box-shadow: 0 0 0 4px rgba(57, 214, 186, 0.14), 0 0 10px rgba(57, 214, 186, 0.3);
 }
 
 button,
@@ -111,7 +128,7 @@ a {
 }
 
 ::selection {
-  background: var(--champagne-soft);
+  background: rgba(201, 166, 107, 0.32);
   color: var(--ink);
 }
 
@@ -127,14 +144,14 @@ a {
 
 .section-kicker {
   color: #8a6a39;
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .section-title {
-  margin-top: 0.8rem;
+  margin-top: 0.75rem;
   max-width: 780px;
   font-size: clamp(2.5rem, 6vw, 5.4rem);
   font-weight: 500;
@@ -171,10 +188,19 @@ a {
 .premium-card {
   border: 1px solid var(--line);
   border-radius: 20px;
-  background: rgba(252, 250, 245, 0.9);
+  background: rgba(253, 251, 246, 0.94);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 18px 70px rgba(17, 24, 20, 0.07);
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 2px 8px rgba(17, 24, 20, 0.04),
+    0 20px 60px rgba(17, 24, 20, 0.07);
+  transition: box-shadow 420ms ease, transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-card:hover {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 4px 14px rgba(17, 24, 20, 0.05),
+    0 30px 80px rgba(17, 24, 20, 0.09);
 }
 
 .info-prose h2 {
@@ -190,7 +216,7 @@ a {
 
 .info-prose p {
   margin-top: 0.65rem;
-  color: #66706a;
+  color: #5f6b63;
   font-size: 0.92rem;
   line-height: 1.85;
 }
@@ -198,8 +224,16 @@ a {
 .dark-card {
   border: 1px solid var(--line-dark);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.045);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 4px 16px rgba(0, 0, 0, 0.12);
+  transition: border-color 300ms ease, background 300ms ease;
+}
+
+.dark-card:hover {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.055);
 }
 
 .evidence-rail {
@@ -217,19 +251,19 @@ a {
 }
 
 .reveal {
-  animation: reveal 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: reveal 820ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .reveal-delay-1 {
-  animation-delay: 100ms;
+  animation-delay: 120ms;
 }
 
 .reveal-delay-2 {
-  animation-delay: 190ms;
+  animation-delay: 220ms;
 }
 
 .reveal-delay-3 {
-  animation-delay: 280ms;
+  animation-delay: 320ms;
 }
 
 .text-\[8px\] {
@@ -247,17 +281,31 @@ a {
 :focus-visible {
   outline: 2px solid #6177f2;
   outline-offset: 3px;
+  border-radius: 4px;
 }
 
 @keyframes reveal {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -268,7 +316,8 @@ a {
   .reveal,
   .reveal-delay-1,
   .reveal-delay-2,
-  .reveal-delay-3 {
+  .reveal-delay-3,
+  .animate-pulse-soft {
     animation: none;
   }
 }

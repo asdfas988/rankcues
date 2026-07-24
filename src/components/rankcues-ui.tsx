@@ -40,7 +40,7 @@ export function BrandMark({ inverse = false, locale = "en" }: { inverse?: boolea
       href="/"
       className={`group inline-flex items-center gap-3 ${inverse ? "text-white" : "text-[#111827]"}`}
     >
-      <span className={`relative flex size-9 items-center justify-center overflow-hidden rounded-lg border ${inverse ? "border-white/10 bg-white/[0.06] text-[#8da2ff]" : "border-[#dfe3eb] bg-[#111827] text-[#8da2ff]"}`}>
+      <span className={`relative flex size-9 items-center justify-center overflow-hidden rounded-lg border shadow-[0_2px_8px_rgba(0,0,0,0.18)] ${inverse ? "border-white/12 bg-gradient-to-b from-white/[0.1] to-white/[0.04] text-[#8da2ff]" : "border-[#dfe3eb] bg-gradient-to-b from-[#1c2740] to-[#111827] text-[#8da2ff]"}`}>
         <Radar size={18} />
         <span className="absolute inset-x-2 bottom-1.5 h-px bg-current opacity-50" />
       </span>
@@ -60,12 +60,12 @@ export function MarketingHeader() {
       <BrandMark inverse />
       <nav className="hidden items-center gap-7 text-[13px] font-medium text-white/58 lg:flex">
         {marketingLinks.map((link) => (
-          <Link key={link.href} href={link.href} className="transition-colors hover:text-white">
+          <Link key={link.href} href={link.href} className="relative py-1 transition-colors duration-300 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:bg-[#d8bb89] after:transition-transform after:duration-300 hover:text-white hover:after:scale-x-100">
             {link.label}
           </Link>
         ))}
       </nav>
-      <Link href="/login" className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/12 bg-white/[0.07] px-4 text-xs font-semibold text-white transition hover:bg-white/[0.12]">
+      <Link href="/login" className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/12 bg-white/[0.07] px-4 text-xs font-semibold text-white transition-all duration-300 hover:border-white/24 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(216,187,137,0.15)]">
         Private beta <ArrowRight size={14} />
       </Link>
     </header>
@@ -88,7 +88,7 @@ export async function AppShell({ active, children }: { active: string; children:
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex h-10 shrink-0 items-center gap-3 rounded-lg px-3 text-[12px] transition ${selected ? "bg-white/[0.09] font-semibold text-white shadow-[inset_2px_0_0_#6e8bff]" : "text-white/48 hover:bg-white/[0.05] hover:text-white/90"}`}
+                  className={`flex h-10 shrink-0 items-center gap-3 rounded-lg px-3 text-[12px] transition-all duration-200 ${selected ? "bg-gradient-to-r from-white/[0.11] to-white/[0.05] font-semibold text-white shadow-[inset_2px_0_0_#6e8bff]" : "text-white/48 hover:bg-white/[0.05] hover:text-white/90"}`}
                 >
                   <Icon size={15} />
                   {navLabel(locale, link.label)}
@@ -96,7 +96,7 @@ export async function AppShell({ active, children }: { active: string; children:
               );
             })}
           </nav>
-          <div className="mt-6 hidden rounded-xl border border-white/[0.07] bg-white/[0.035] p-3 lg:block">
+          <div className="mt-6 hidden rounded-xl border border-white/[0.08] bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.2)] lg:block">
             <div className="flex items-center gap-2 text-[11px] font-semibold text-white/74">
               <CircleDot size={13} className="text-[#39d6ba]" /> {pick(locale, "Production workspace", "生产工作区", "Espacio de producción")}
             </div>
@@ -123,7 +123,7 @@ export async function AppShell({ active, children }: { active: string; children:
                 <span className="hidden items-center gap-2 rounded-lg border border-[#e3e7ef] bg-[#f8fafc] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.08em] text-[#667085] sm:inline-flex">
                   <span className="status-dot size-1.5 rounded-full bg-[#39d6ba]" /> {pick(locale, "Live data", "实时数据", "Datos activos")}
                 </span>
-                <Link href="/app/connect" className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#111827] px-3.5 text-[11px] font-semibold text-white transition hover:bg-[#1f2937]">
+                <Link href="/app/connect" className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#111827] px-3.5 text-[11px] font-semibold text-white shadow-[0_1px_2px_rgba(16,24,40,0.2),0_4px_12px_rgba(16,24,40,0.12)] transition-all duration-200 hover:bg-[#1f2937] hover:shadow-[0_2px_4px_rgba(16,24,40,0.2),0_8px_20px_rgba(16,24,40,0.16)] active:scale-[0.98]">
                   <Plus size={14} /> {pick(locale, "Add property", "添加网站", "Añadir sitio")}
                 </Link>
               </div>
@@ -159,7 +159,8 @@ export function VisualFrame({ src, alt, priority = false }: { src: string; alt: 
 
 export function MetricCard({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="data-card p-4">
+    <div className="data-card group relative overflow-hidden p-4">
+      <span className="absolute inset-x-0 top-0 h-[2px] origin-left scale-x-0 bg-gradient-to-r from-[#6177f2] to-[#8da2ff] transition-transform duration-300 group-hover:scale-x-100" />
       <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#8b94a5]">{label}</p>
       <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#111827]">{value}</p>
       <p className="mt-1 text-[10px] text-[#8b94a5]">{detail}</p>
@@ -169,17 +170,17 @@ export function MetricCard({ label, value, detail }: { label: string; value: str
 
 export function ActionLink({ href, children, tone = "dark" }: { href: string; children: ReactNode; tone?: "dark" | "light" | "yellow" }) {
   const className = tone === "dark"
-    ? "bg-[#111827] text-white hover:bg-[#1f2937]"
+    ? "bg-[#111827] text-white shadow-[0_1px_2px_rgba(16,24,40,0.2)] hover:bg-[#1f2937] hover:shadow-[0_4px_12px_rgba(16,24,40,0.2)]"
     : tone === "yellow"
-      ? "bg-[#6177f2] text-white hover:bg-[#5168e6]"
-      : "border border-[#dfe3eb] bg-white text-[#344054] hover:border-[#c7cfdd] hover:bg-[#f8fafc]";
-  return <Link href={href} className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3.5 text-[11px] font-semibold transition ${className}`}>{children}</Link>;
+      ? "bg-[#6177f2] text-white shadow-[0_1px_2px_rgba(97,119,242,0.35)] hover:bg-[#5168e6] hover:shadow-[0_4px_14px_rgba(97,119,242,0.4)]"
+      : "border border-[#dfe3eb] bg-white text-[#344054] shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:border-[#c7cfdd] hover:bg-[#f8fafc]";
+  return <Link href={href} className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3.5 text-[11px] font-semibold transition-all duration-200 active:scale-[0.98] ${className}`}>{children}</Link>;
 }
 
 export function SubmitAction({ action, children }: { action: string; children: ReactNode }) {
   return (
     <form action={action} method="post">
-      <button type="submit" className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#111827] px-3.5 text-[11px] font-semibold text-white transition hover:bg-[#1f2937]">{children}</button>
+      <button type="submit" className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#111827] px-3.5 text-[11px] font-semibold text-white shadow-[0_1px_2px_rgba(16,24,40,0.2)] transition-all duration-200 hover:bg-[#1f2937] hover:shadow-[0_4px_12px_rgba(16,24,40,0.2)] active:scale-[0.98]">{children}</button>
     </form>
   );
 }
@@ -187,7 +188,7 @@ export function SubmitAction({ action, children }: { action: string; children: R
 export function IconTile({ icon: Icon, title, body, href }: { icon: IconType; title: string; body: string; href: string }) {
   return (
     <Link href={href} className="data-card group block p-5 transition duration-300 hover:-translate-y-0.5 hover:border-[#bac5f8]">
-      <span className="flex size-10 items-center justify-center rounded-xl bg-[#eef1ff] text-[#5268d9]"><Icon size={18} /></span>
+      <span className="flex size-10 items-center justify-center rounded-xl bg-[#eef1ff] text-[#5268d9] transition-colors duration-300 group-hover:bg-[#5268d9] group-hover:text-white"><Icon size={18} /></span>
       <h2 className="mt-5 text-lg font-semibold tracking-[-0.025em]">{title}</h2>
       <p className="mt-2 text-[12px] leading-6 text-[#667085]">{body}</p>
       <span className="mt-5 inline-flex items-center gap-2 text-[11px] font-semibold">Explore <ArrowRight size={13} className="transition group-hover:translate-x-1" /></span>

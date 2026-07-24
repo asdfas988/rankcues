@@ -85,8 +85,8 @@ export default function Home() {
 
         <div className="relative mx-auto grid max-w-[1440px] items-center gap-14 px-5 pb-24 pt-14 sm:px-8 lg:grid-cols-[0.82fr_1.18fr] lg:px-12 lg:pb-28 lg:pt-20">
           <div className="relative z-10">
-            <div className="reveal inline-flex items-center gap-2 rounded-full border border-[#d8bb89]/22 bg-[#d8bb89]/7 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.16em] text-[#e1c89e]">
-              <Sparkles size={13} /> SEO reporting software for agencies
+            <div className="reveal inline-flex items-center gap-2 rounded-full border border-[#d8bb89]/25 bg-[#d8bb89]/8 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.16em] text-[#e1c89e] shadow-[0_0_28px_rgba(216,187,137,0.1)]">
+              <Sparkles size={13} className="animate-pulse-soft" /> SEO reporting software for agencies
             </div>
             <h1 className="reveal reveal-delay-1 mt-6 max-w-[760px] font-display text-[clamp(4.1rem,7.2vw,7.6rem)] font-normal leading-[0.85] tracking-[-0.065em]">
               Know <em className="font-light text-[#d8bb89]">why</em> organic performance changed.
@@ -99,13 +99,13 @@ export default function Home() {
             <div className="reveal reveal-delay-3 mt-8 flex flex-wrap gap-3">
               <Link
                 href="/login"
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-[#d8bb89] px-5 text-sm font-semibold text-[#0a0d0c] transition hover:bg-[#e7cea2]"
+                className="inline-flex h-12 items-center gap-2 rounded-full bg-[#d8bb89] px-5 text-sm font-semibold text-[#0a0d0c] shadow-[0_2px_12px_rgba(216,187,137,0.35),0_8px_32px_rgba(216,187,137,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e7cea2] hover:shadow-[0_4px_20px_rgba(216,187,137,0.45),0_12px_44px_rgba(216,187,137,0.25)] active:translate-y-0"
               >
                 Open private beta <ArrowRight size={16} />
               </Link>
               <Link
                 href="#how-it-works"
-                className="inline-flex h-12 items-center gap-2 rounded-full border border-white/13 bg-white/4 px-5 text-sm font-medium text-white/76 transition hover:bg-white/8 hover:text-white"
+                className="inline-flex h-12 items-center gap-2 rounded-full border border-white/13 bg-white/4 px-5 text-sm font-medium text-white/76 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/22 hover:bg-white/8 hover:text-white active:translate-y-0"
               >
                 See the workflow
               </Link>
@@ -123,6 +123,7 @@ export default function Home() {
           <div className="reveal reveal-delay-2 relative lg:pl-6">
             <div className="absolute -inset-10 rounded-full bg-[#d8bb89]/8 blur-[90px]" />
             <div className="relative overflow-hidden rounded-[26px] border border-white/12 bg-[#101714]/92 shadow-[0_44px_150px_rgba(0,0,0,0.48)] backdrop-blur">
+              <span className="absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-[#d8bb89]/60 to-transparent" />
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 px-5 py-4">
                 <div>
                   <p className="text-xs font-semibold">Northstar Dental</p>
@@ -130,8 +131,8 @@ export default function Home() {
                     Illustrative workflow · INV-042
                   </p>
                 </div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#e87962]/20 bg-[#e87962]/8 px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[#f2a18f]">
-                  <span className="size-1.5 rounded-full bg-[#e87962]" /> High impact
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#e87962]/22 bg-[#e87962]/8 px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[#f2a18f]">
+                  <span className="size-1.5 animate-pulse-soft rounded-full bg-[#e87962]" /> High impact
                 </span>
               </div>
 
@@ -226,9 +227,9 @@ export default function Home() {
             {evidenceLayers.map((layer) => {
               const Icon = layer.icon;
               return (
-                <article key={layer.number} className="premium-card group relative overflow-hidden p-6 sm:p-7">
-                  <div className="absolute right-5 top-4 font-display text-6xl font-light text-[#0a0d0c]/[0.045]">{layer.number}</div>
-                  <span className="flex size-11 items-center justify-center rounded-2xl bg-[#101714] text-[#d8bb89]">
+                <article key={layer.number} className="premium-card group relative overflow-hidden p-6 transition-transform duration-500 hover:-translate-y-1.5 sm:p-7">
+                  <div className="absolute right-5 top-4 font-display text-6xl font-light text-[#0a0d0c]/[0.045] transition-colors duration-500 group-hover:text-[#0a0d0c]/[0.08]">{layer.number}</div>
+                  <span className="flex size-11 items-center justify-center rounded-2xl bg-[#101714] text-[#d8bb89] shadow-[0_4px_14px_rgba(16,23,20,0.25)] transition-transform duration-500 group-hover:scale-105">
                     <Icon size={20} />
                   </span>
                   <h3 className="mt-8 font-display text-3xl font-medium tracking-[-0.04em]">{layer.title}</h3>
@@ -256,10 +257,10 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.035]">
+          <div className="overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.035] shadow-[0_24px_80px_rgba(0,0,0,0.25)]">
             {workflow.map(([title, body], index) => (
-              <div key={title} className="grid gap-3 border-b border-white/8 px-5 py-5 last:border-b-0 sm:grid-cols-[56px_120px_1fr] sm:items-center">
-                <span className="font-mono text-[10px] text-[#d8bb89]">0{index + 1}</span>
+              <div key={title} className="group grid gap-3 border-b border-white/8 px-5 py-5 transition-colors duration-300 last:border-b-0 hover:bg-white/[0.03] sm:grid-cols-[56px_120px_1fr] sm:items-center">
+                <span className="font-mono text-[10px] text-[#d8bb89] transition-transform duration-300 group-hover:translate-x-0.5">0{index + 1}</span>
                 <span className="text-sm font-semibold">{title}</span>
                 <span className="text-xs leading-6 text-white/44">{body}</span>
               </div>
@@ -270,7 +271,8 @@ export default function Home() {
 
       <section className="bg-[#f3f0e8] px-5 py-24 text-[#0a0d0c] sm:px-8 lg:px-12 lg:py-28">
         <div className="mx-auto grid max-w-[1340px] gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="overflow-hidden rounded-[24px] bg-[#0a0d0c] p-6 text-white sm:p-8">
+          <div className="relative overflow-hidden rounded-[24px] bg-[#0a0d0c] p-6 text-white shadow-[0_24px_80px_rgba(10,13,12,0.28)] sm:p-8">
+            <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d8bb89]/50 to-transparent" />
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="section-kicker text-[#d8bb89]">Friday client brief</p>
@@ -332,7 +334,7 @@ export default function Home() {
           <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-white/48">
             Start with one Search Console property and see which changes are already hiding behind the chart.
           </p>
-          <Link href="/login" className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-[#d8bb89] px-6 text-sm font-semibold text-[#0a0d0c] transition hover:bg-[#e7cea2]">
+          <Link href="/login" className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-[#d8bb89] px-6 text-sm font-semibold text-[#0a0d0c] shadow-[0_2px_16px_rgba(216,187,137,0.4),0_12px_48px_rgba(216,187,137,0.2)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e7cea2] hover:shadow-[0_4px_24px_rgba(216,187,137,0.5),0_16px_64px_rgba(216,187,137,0.3)] active:translate-y-0">
             Open private beta <ArrowRight size={16} />
           </Link>
         </div>
