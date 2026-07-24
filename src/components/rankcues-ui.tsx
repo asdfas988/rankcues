@@ -40,7 +40,7 @@ export function BrandMark({ inverse = false, locale = "en" }: { inverse?: boolea
       href="/"
       className={`group inline-flex items-center gap-3 ${inverse ? "text-white" : "text-[#111827]"}`}
     >
-      <span className={`relative flex size-9 items-center justify-center overflow-hidden rounded-lg border shadow-[0_2px_8px_rgba(0,0,0,0.18)] ${inverse ? "border-white/12 bg-gradient-to-b from-white/[0.1] to-white/[0.04] text-[#8da2ff]" : "border-[#dfe3eb] bg-gradient-to-b from-[#1c2740] to-[#111827] text-[#8da2ff]"}`}>
+      <span className={`relative flex size-9 items-center justify-center overflow-hidden rounded-lg border shadow-[0_2px_8px_rgba(0,0,0,0.18)] ${inverse ? "border-white/12 bg-white/[0.08] text-white" : "border-[#111318] bg-[#111318] text-white"}`}>
         <Radar size={18} />
         <span className="absolute inset-x-2 bottom-1.5 h-px bg-current opacity-50" />
       </span>
@@ -54,18 +54,21 @@ export function BrandMark({ inverse = false, locale = "en" }: { inverse?: boolea
   );
 }
 
-export function MarketingHeader() {
+export function MarketingHeader({ variant = "dark" }: { variant?: "dark" | "light" }) {
+  const light = variant === "light";
   return (
-    <header className="relative z-20 mx-auto flex max-w-[1440px] items-center justify-between gap-6 border-b border-white/6 bg-[#0b1220]/92 px-5 py-5 backdrop-blur-xl sm:px-8 lg:px-12">
-      <BrandMark inverse />
-      <nav className="hidden items-center gap-7 text-[13px] font-medium text-white/58 lg:flex">
+    <header className={`relative z-20 mx-auto flex max-w-[1440px] items-center justify-between gap-6 border-b px-5 py-5 backdrop-blur-xl sm:px-8 lg:px-12 ${light ? "border-[#0f1223]/8 bg-white/80" : "border-white/6 bg-[#0b1220]/92"}`}>
+      <BrandMark inverse={!light} />
+      <nav className={`hidden items-center gap-7 text-[13px] font-medium lg:flex ${light ? "text-[#5b6272]" : "text-white/58"}`}>
         {marketingLinks.map((link) => (
-          <Link key={link.href} href={link.href} className="relative py-1 transition-colors duration-300 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:bg-[#d8bb89] after:transition-transform after:duration-300 hover:text-white hover:after:scale-x-100">
+          <Link key={link.href} href={link.href} className={`relative py-1 transition-colors duration-300 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100 ${light ? "after:bg-[#4f46e5] hover:text-[#111318]" : "after:bg-[#d8bb89] hover:text-white"}`}>
             {link.label}
           </Link>
         ))}
       </nav>
-      <Link href="/login" className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/12 bg-white/[0.07] px-4 text-xs font-semibold text-white transition-all duration-300 hover:border-white/24 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(216,187,137,0.15)]">
+      <Link href="/login" className={light
+        ? "inline-flex h-10 items-center gap-2 rounded-lg bg-[#111318] px-4 text-xs font-semibold text-white shadow-[0_1px_2px_rgba(15,18,35,0.18),0_4px_14px_rgba(15,18,35,0.12)] transition-all duration-300 hover:bg-[#23262e] hover:shadow-[0_2px_4px_rgba(15,18,35,0.18),0_8px_24px_rgba(15,18,35,0.18)]"
+        : "inline-flex h-10 items-center gap-2 rounded-lg border border-white/12 bg-white/[0.07] px-4 text-xs font-semibold text-white transition-all duration-300 hover:border-white/24 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(216,187,137,0.15)]"}>
         Private beta <ArrowRight size={14} />
       </Link>
     </header>
@@ -77,7 +80,7 @@ export async function AppShell({ active, children }: { active: string; children:
   return (
     <main className="min-h-screen bg-[#f4f6fa] text-[#111827]">
       <div className="grid min-h-screen min-w-0 grid-cols-[minmax(0,1fr)] lg:grid-cols-[224px_minmax(0,1fr)]">
-        <aside className="relative z-20 min-w-0 overflow-hidden border-b border-white/8 bg-[#0b1220] px-3 py-3 text-white lg:sticky lg:top-0 lg:h-screen lg:border-b-0">
+        <aside className="relative z-20 min-w-0 overflow-hidden border-b border-white/8 bg-[#0e0f13] px-3 py-3 text-white lg:sticky lg:top-0 lg:h-screen lg:border-b-0">
           <div className="px-2 py-2.5"><BrandMark inverse locale={locale} /></div>
           <p className="mt-7 hidden px-3 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-white/26 lg:block">{pick(locale, "Workspace", "工作区", "Espacio")}</p>
           <nav className="mt-3 flex gap-1 overflow-x-auto pb-1 lg:grid lg:overflow-visible lg:pb-0">
@@ -88,7 +91,7 @@ export async function AppShell({ active, children }: { active: string; children:
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex h-10 shrink-0 items-center gap-3 rounded-lg px-3 text-[12px] transition-all duration-200 ${selected ? "bg-gradient-to-r from-white/[0.11] to-white/[0.05] font-semibold text-white shadow-[inset_2px_0_0_#6e8bff]" : "text-white/48 hover:bg-white/[0.05] hover:text-white/90"}`}
+                  className={`flex h-10 shrink-0 items-center gap-3 rounded-lg px-3 text-[12px] transition-all duration-200 ${selected ? "bg-gradient-to-r from-white/[0.11] to-white/[0.05] font-semibold text-white shadow-[inset_2px_0_0_#6366f1]" : "text-white/48 hover:bg-white/[0.05] hover:text-white/90"}`}
                 >
                   <Icon size={15} />
                   {navLabel(locale, link.label)}
@@ -172,7 +175,7 @@ export function ActionLink({ href, children, tone = "dark" }: { href: string; ch
   const className = tone === "dark"
     ? "bg-[#111827] text-white shadow-[0_1px_2px_rgba(16,24,40,0.2)] hover:bg-[#1f2937] hover:shadow-[0_4px_12px_rgba(16,24,40,0.2)]"
     : tone === "yellow"
-      ? "bg-[#6177f2] text-white shadow-[0_1px_2px_rgba(97,119,242,0.35)] hover:bg-[#5168e6] hover:shadow-[0_4px_14px_rgba(97,119,242,0.4)]"
+      ? "bg-[#4f46e5] text-white shadow-[0_1px_2px_rgba(79,70,229,0.35)] hover:bg-[#4338ca] hover:shadow-[0_4px_14px_rgba(79,70,229,0.4)]"
       : "border border-[#dfe3eb] bg-white text-[#344054] shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:border-[#c7cfdd] hover:bg-[#f8fafc]";
   return <Link href={href} className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3.5 text-[11px] font-semibold transition-all duration-200 active:scale-[0.98] ${className}`}>{children}</Link>;
 }
