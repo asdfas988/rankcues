@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { classifyLinkOpportunity, isPublicHostname, normalizePublicHttpsUrl } from "@/lib/link-campaign-model";
+import type { DiscoveredLinkOpportunityInput } from "@/lib/link-campaigns";
 import {
   createSyncRun,
   finishSyncRun,
@@ -64,6 +66,102 @@ function siteTarget(site: StoredSite) {
   if (site.backlinkTarget) return site.backlinkTarget;
   if (site.siteUrl.startsWith("sc-domain:")) return site.siteUrl.slice("sc-domain:".length);
   return new URL(site.siteUrl).hostname;
+}
+
+function normalizeBacklinkGapTarget(value: string) {
+  const text = value.trim();
+  if (!text || text.length > 500) return null;
+  try {
+    const url = new URL(text);
+    if (!['http:', 'https:'].includes(url.protocol) || !isPublicHostname(url.hostname)) return null;
+    url.hash = "";
+    return url.toString();
+  } catch {
+    const domain = text.toLowerCase().replace(/^www\./, "").replace(/\.$/, "");
+    return isPublicHostname(domain) && /^[a-z0-9.-]+$/i.test(domain) ? domain : null;
+  }
+}
+
+function record(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+export async function discoverBacklinkGap(input: {
+  target: string;
+  competitors: string[];
+  limit?: number;
+}): Promise<DiscoveredLinkOpportunityInput[]> {
+  const target = normalizeBacklinkGapTarget(input.target);
+  if (!target) throw new Error("Use a valid public domain or URL for the backlink target.");
+  const competitors = [...new Set(input.competitors.map(normalizeBacklinkGapTarget).filter((value): value is string => Boolean(value)))]
+    .filter((value) => value !== target)
+    .slice(0, 20);
+  if (!competitors.length) throw new Error("Add at least one valid competitor domain or URL.");
+  const targets = Object.fromEntries(competitors.map((competitor, index) => [String(index + 1), competitor]));
+  const result = await callDataForSeo("page_intersection", {
+    targets,
+    exclude_targets: [target],
+    backlinks_status_type: "live",
+    intersection_mode: "all",
+    include_subdomains: true,
+    exclude_internal_backlinks: true,
+    rank_scale: "one_hundred",
+    limit: Math.max(1, Math.min(input.limit || 100, 300)),
+    order_by: ["1.domain_from_rank,desc"],
+  });
+  const items = Array.isArray(result.items) ? result.items : [];
+  const discovered = new Map<string, DiscoveredLinkOpportunityInput>();
+  for (const item of items) {
+    const intersection = record(record(item)?.page_intersection);
+    if (!intersection) continue;
+    const matches = Object.entries(intersection).flatMap(([targetKey, entries]) =>
+      Array.isArray(entries)
+        ? entries.map((entry) => ({ targetKey, entry: record(entry) })).filter((value): value is { targetKey: string; entry: Record<string, unknown> } => Boolean(value.entry))
+        : [],
+    );
+    const first = matches.find(({ entry }) => normalizePublicHttpsUrl(entry.url_from));
+    if (!first) continue;
+    const sourceUrl = normalizePublicHttpsUrl(first.entry.url_from);
+    if (!sourceUrl) continue;
+    const samePage = matches.filter(({ entry }) => normalizePublicHttpsUrl(entry.url_from) === sourceUrl);
+    const linkedKeys = [...new Set(samePage.map(({ targetKey }) => targetKey))];
+    const strongest = samePage.reduce((best, current) =>
+      number(current.entry.domain_from_rank) > number(best.entry.domain_from_rank) ? current : best,
+    first);
+    const spamScore = samePage.reduce((maximum, current) => Math.max(maximum, number(current.entry.backlink_spam_score)), 0);
+    const authorityScore = Math.max(0, Math.min(number(strongest.entry.domain_from_rank), 100));
+    const inferred = classifyLinkOpportunity({
+      url: sourceUrl,
+      title: string(strongest.entry.page_from_title),
+      spamScore,
+    });
+    const relevanceScore = Math.max(0, Math.min(45 + linkedKeys.length * 12 + Math.round(authorityScore * 0.2), 100));
+    const existing = discovered.get(sourceUrl);
+    if (existing && (existing.relevanceScore || 0) >= relevanceScore) continue;
+    discovered.set(sourceUrl, {
+      sourceUrl,
+      submissionUrl: sourceUrl,
+      destinationName: string(strongest.entry.page_from_title) || string(strongest.entry.domain_from) || new URL(sourceUrl).hostname,
+      source: "dataforseo_gap",
+      category: inferred.category,
+      relevanceScore,
+      authorityScore,
+      spamScore,
+      risk: inferred.risk,
+      rationale: `This page links to ${linkedKeys.length} of ${competitors.length} competitor targets but not to your selected property. Review relevance and destination policy before outreach or submission.`,
+      metadata: {
+        provider: "DataForSEO",
+        linkedCompetitorCount: linkedKeys.length,
+        matchedTargetKeys: linkedKeys,
+        pageRank: number(strongest.entry.page_from_rank),
+        platformTypes: Array.isArray(strongest.entry.domain_from_platform_type) ? strongest.entry.domain_from_platform_type : [],
+        pageStatusCode: number(strongest.entry.page_from_status_code),
+      },
+    });
+  }
+  return [...discovered.values()]
+    .sort((left, right) => (right.relevanceScore || 0) - (left.relevanceScore || 0))
+    .slice(0, Math.max(1, Math.min(input.limit || 100, 300)));
 }
 
 export async function syncBacklinksForSite(site: StoredSite) {

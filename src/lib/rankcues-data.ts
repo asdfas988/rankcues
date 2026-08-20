@@ -15,6 +15,7 @@ import {
   Settings,
   Upload,
   Search,
+  Send,
   Workflow,
   ListTodo,
 } from "lucide-react";
@@ -33,6 +34,7 @@ export const appLinks = [
   { href: "/app/traffic", label: "Traffic", icon: BarChart3 },
   { href: "/app/audit", label: "Changes", icon: Activity },
   { href: "/app/backlinks", label: "Backlinks", icon: Link2 },
+  { href: "/app/link-campaigns", label: "Link campaigns", icon: Send },
   { href: "/app/reports", label: "AI reports", icon: FileText },
   { href: "/app/tasks", label: "Tasks", icon: ListTodo },
   { href: "/app/automations", label: "Automations", icon: Workflow },
