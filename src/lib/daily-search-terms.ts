@@ -805,7 +805,7 @@ export async function getDailySearchTermLedger(
         and c.last_seen_on = m.metric_date
       join rankcues_sites s on s.id = m.site_id
       where m.site_id = ${input.siteId} and s.workspace_id = ${currentWorkspaceId}
-      group by normalized_query, m.metric_date, m.page
+      group by lower(regexp_replace(btrim(m.query), '[[:space:]]+', ' ', 'g')), m.metric_date, m.page
     ), page_daily as (
       select
         *,
