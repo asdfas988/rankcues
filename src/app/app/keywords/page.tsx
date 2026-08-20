@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowDown, ArrowUp, BarChart3, Crosshair, Plus, Search, Star, X } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, BarChart3, CalendarSearch, Crosshair, Plus, Search, Star, X } from "lucide-react";
 import { AppShell, MetricCard, PageHeader } from "@/components/rankcues-ui";
 import { EmptyData } from "@/components/rankcues-dashboard";
 import { getKeywordRankHistory, getKeywordRankings, listGscSites } from "@/lib/data-store";
@@ -116,6 +116,7 @@ export default async function KeywordsPage({ searchParams }: { searchParams: Pro
         kicker={pick(locale, "Rank tracking", "排名追踪", "Seguimiento de posiciones")}
         title={pick(locale, "Know exactly which queries are moving", "准确掌握每个关键词的排名变化", "Conoce exactamente qué consultas están cambiando")}
         body={pick(locale, "Track the queries that matter, compare equal seven-day windows, and inspect daily Google Search Console ranking history by device.", "追踪重要关键词，对比相同的 7 天窗口，并按设备查看 Google Search Console 每日平均排名历史。", "Sigue las consultas importantes, compara ventanas iguales de siete días y revisa el historial diario de posición media de Google Search Console por dispositivo.")}
+        action={<Link href="/app/keywords/daily" className="group inline-flex h-10 items-center gap-2 rounded-lg bg-[#111827] px-4 text-[11px] font-semibold text-white shadow-[0_1px_2px_rgba(16,24,40,0.2),0_6px_18px_rgba(16,24,40,0.14)] transition hover:bg-[#263244]"><CalendarSearch size={14} /> {pick(locale, "Daily search-term ledger", "每日搜索词台账", "Registro diario de términos")} <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5" /></Link>}
       />
 
       <div className="grid gap-4 px-4 pb-10 sm:px-6 lg:px-8">

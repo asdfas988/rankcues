@@ -22,7 +22,14 @@ function translateTextNode(locale: AppLocale, value: string) {
 function localizeNode(node: ReactNode, locale: AppLocale): ReactNode {
   if (locale === "en" || node == null || typeof node === "boolean" || typeof node === "number") return node;
   if (typeof node === "string") return translateTextNode(locale, node);
-  if (Array.isArray(node)) return node.map((child) => localizeNode(child, locale));
+  if (Array.isArray(node)) {
+    return node.map((child, index) => {
+      const localizedChild = localizeNode(child, locale);
+      return isValidElement(localizedChild) && localizedChild.key == null
+        ? cloneElement(localizedChild, { key: `localized-${index}` })
+        : localizedChild;
+    });
+  }
   if (!isValidElement(node)) return node;
 
   const element = node as ReactElement<Record<string, unknown>>;

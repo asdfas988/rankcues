@@ -153,6 +153,70 @@ async function createSchema() {
   `;
 
   await sql`
+    create index if not exists rankcues_gsc_metrics_site_query_date_idx
+      on rankcues_gsc_metrics (
+        site_id,
+        lower(regexp_replace(btrim(query), '[[:space:]]+', ' ', 'g')),
+        metric_date desc
+      )
+  `;
+
+  await sql`
+    create unique index if not exists rankcues_sites_workspace_id_idx
+      on rankcues_sites (workspace_id, id)
+  `;
+
+  await sql`
+    create table if not exists rankcues_search_term_baselines (
+      workspace_id text not null references rankcues_workspaces(id) on delete cascade,
+      site_id text primary key references rankcues_sites(id) on delete cascade,
+      baseline_through date not null,
+      last_processed_on date not null,
+      last_data_complete boolean not null default true,
+      initialized_at timestamptz not null default now(),
+      last_refreshed_at timestamptz not null default now(),
+      unique (workspace_id, site_id),
+      foreign key (workspace_id, site_id)
+        references rankcues_sites(workspace_id, id) on delete cascade
+    )
+  `;
+
+  await sql`
+    alter table rankcues_search_term_baselines
+      add column if not exists last_data_complete boolean not null default true
+  `;
+
+  await sql`
+    create table if not exists rankcues_search_term_lifecycle (
+      workspace_id text not null references rankcues_workspaces(id) on delete cascade,
+      site_id text not null references rankcues_sites(id) on delete cascade,
+      normalized_query text not null,
+      query text not null,
+      first_seen_on date not null,
+      last_seen_on date not null,
+      previous_seen_on date,
+      observed_days integer not null check (observed_days > 0),
+      status text not null check (status in ('baseline', 'new', 'returning', 'growing', 'active', 'lost')),
+      status_date date not null,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now(),
+      primary key (workspace_id, site_id, normalized_query),
+      foreign key (workspace_id, site_id)
+        references rankcues_sites(workspace_id, id) on delete cascade
+    )
+  `;
+
+  await sql`
+    create index if not exists rankcues_search_term_lifecycle_site_status_idx
+      on rankcues_search_term_lifecycle (workspace_id, site_id, status, status_date desc)
+  `;
+
+  await sql`
+    create index if not exists rankcues_search_term_lifecycle_site_last_seen_idx
+      on rankcues_search_term_lifecycle (workspace_id, site_id, last_seen_on desc)
+  `;
+
+  await sql`
     create table if not exists rankcues_tracked_keywords (
       id text primary key,
       workspace_id text not null references rankcues_workspaces(id) on delete cascade,
@@ -245,6 +309,32 @@ async function createSchema() {
     create unique index if not exists rankcues_sync_runs_one_active_idx
       on rankcues_sync_runs (site_id, source)
       where status = 'running'
+  `;
+
+  await sql`
+    create index if not exists rankcues_sync_runs_site_source_completed_idx
+      on rankcues_sync_runs (site_id, source, completed_at desc)
+      where status = 'completed'
+  `;
+
+  await sql`
+    create table if not exists rankcues_gsc_date_coverage (
+      workspace_id text not null references rankcues_workspaces(id) on delete cascade,
+      site_id text not null references rankcues_sites(id) on delete cascade,
+      coverage_date date not null,
+      is_complete boolean not null,
+      sync_run_id text,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now(),
+      primary key (workspace_id, site_id, coverage_date),
+      foreign key (workspace_id, site_id)
+        references rankcues_sites(workspace_id, id) on delete cascade
+    )
+  `;
+
+  await sql`
+    create index if not exists rankcues_gsc_date_coverage_site_date_idx
+      on rankcues_gsc_date_coverage (workspace_id, site_id, coverage_date desc)
   `;
 
   await sql`
@@ -600,6 +690,8 @@ async function createSchema() {
       foreach table_name in array array[
         'rankcues_workspaces', 'rankcues_workspace_members', 'rankcues_action_windows',
         'rankcues_google_connections', 'rankcues_sites', 'rankcues_gsc_metrics',
+        'rankcues_search_term_baselines', 'rankcues_search_term_lifecycle',
+        'rankcues_gsc_date_coverage',
         'rankcues_events', 'rankcues_page_snapshots', 'rankcues_sync_runs',
         'rankcues_weekly_reports', 'rankcues_report_jobs', 'rankcues_ga4_properties',
         'rankcues_ga4_metrics', 'rankcues_backlink_snapshots',

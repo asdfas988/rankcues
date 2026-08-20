@@ -20,6 +20,10 @@ import {
   getGoogleServiceAccountAccessToken,
   isGoogleServiceAccountSubject,
 } from "@/lib/google-service-account";
+import {
+  recordGscDateCoverage,
+  refreshDailySearchTermLifecycle,
+} from "@/lib/daily-search-terms";
 
 function dateOnly(value: Date) {
   return value.toISOString().slice(0, 10);
@@ -210,6 +214,41 @@ export async function syncGscSite(site: StoredSite, options?: { days?: number })
       maxRows: Number(process.env.GSC_MAX_ROWS_PER_SYNC || 50_000),
     });
     await saveGscMetrics(site.id, result.rows);
+    const dailyMaxRows = Math.max(
+      1,
+      Math.min(Number(process.env.GSC_DAILY_MAX_ROWS_PER_SYNC || 25_000) || 25_000, 50_000),
+    );
+    const dailySnapshot = result.truncated
+      ? await queryGoogleSearchAnalytics({
+          accessToken,
+          siteUrl: site.siteUrl,
+          startDate: endDate,
+          endDate,
+          rowLimit: Math.min(dailyMaxRows, 25_000),
+          maxRows: dailyMaxRows,
+        })
+      : {
+          rows: result.rows.filter((row) => row.date === endDate),
+          truncated: false,
+          metadata: result.metadata,
+    };
+    if (result.truncated) await saveGscMetrics(site.id, dailySnapshot.rows);
+    await recordGscDateCoverage({
+      siteId: site.id,
+      workspaceId: site.workspaceId,
+      startDate,
+      endDate,
+      historyComplete: !result.truncated,
+      dailySnapshotDate: endDate,
+      dailySnapshotComplete: !dailySnapshot.truncated,
+      syncRunId: runId,
+    });
+    const searchTermLifecycle = await refreshDailySearchTermLifecycle({
+      siteId: site.id,
+      workspaceId: site.workspaceId,
+      dataDate: endDate,
+      dataComplete: !dailySnapshot.truncated,
+    });
     const eventsCreated = await detectGscMovements(site, endDate);
     await finishSyncRun({
       id: runId,
@@ -218,9 +257,14 @@ export async function syncGscSite(site: StoredSite, options?: { days?: number })
       details: {
         startDate,
         endDate,
-        truncated: result.truncated,
+        truncated: dailySnapshot.truncated,
+        historyTruncated: result.truncated,
+        dailyTruncated: dailySnapshot.truncated,
+        dailySnapshotRows: dailySnapshot.rows.length,
+        searchTermsRefreshed: searchTermLifecycle?.rowsUpdated ?? 0,
         eventsCreated,
         metadata: result.metadata,
+        dailyMetadata: dailySnapshot.metadata,
       },
     });
 
@@ -231,6 +275,9 @@ export async function syncGscSite(site: StoredSite, options?: { days?: number })
       endDate,
       rowsWritten: result.rows.length,
       truncated: result.truncated,
+      dailyTruncated: dailySnapshot.truncated,
+      dailySnapshotRows: dailySnapshot.rows.length,
+      searchTermsRefreshed: searchTermLifecycle?.rowsUpdated ?? 0,
       eventsCreated,
     };
   } catch (error) {
