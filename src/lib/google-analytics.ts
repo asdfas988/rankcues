@@ -70,21 +70,29 @@ export async function discoverGa4PropertiesForConnection(connectionId: string, c
     const accessToken = await freshAccessToken(connectionId, currentWorkspaceId);
     const properties = await listGoogleAnalyticsProperties(accessToken);
     await upsertGa4Properties(connectionId, properties, { workspaceId: currentWorkspaceId });
-    await updateGa4DiscoveryStatus({
-      connectionId,
-      workspaceId: currentWorkspaceId,
-      status: properties.length ? "ready" : "empty",
-    });
+    try {
+      await updateGa4DiscoveryStatus({
+        connectionId,
+        workspaceId: currentWorkspaceId,
+        status: properties.length ? "ready" : "empty",
+      });
+    } catch (statusError) {
+      console.error("GA4 discovery completed but its status could not be stored", statusError);
+    }
     return properties;
   } catch (error) {
     const issue = classifyGa4DiscoveryError(error);
-    await updateGa4DiscoveryStatus({
-      connectionId,
-      workspaceId: currentWorkspaceId,
-      status: "failed",
-      errorCode: issue.code,
-      error: issue.message,
-    });
+    try {
+      await updateGa4DiscoveryStatus({
+        connectionId,
+        workspaceId: currentWorkspaceId,
+        status: "failed",
+        errorCode: issue.code,
+        error: issue.message,
+      });
+    } catch (statusError) {
+      console.error("GA4 discovery failure status could not be stored", statusError);
+    }
     throw Object.assign(new Error(issue.message), { code: issue.code, reconnectRequired: issue.reconnectRequired });
   }
 }

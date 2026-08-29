@@ -5,7 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LoaderCircle, RefreshCw } from "lucide-react";
 
-type DiscoveryResponse = { status?: string };
+type DiscoveryResult = {
+  ok?: boolean;
+  code?: string;
+  message?: string;
+  reconnectRequired?: boolean;
+};
+
+type DiscoveryResponse = {
+  status?: string;
+  message?: string;
+  results?: DiscoveryResult[];
+};
 
 export function Ga4DiscoveryControl({
   retryLabel,
@@ -13,6 +24,7 @@ export function Ga4DiscoveryControl({
   successLabel,
   failureLabel,
   networkErrorLabel,
+  errorMessages,
   showReconnect = false,
 }: {
   retryLabel: string;
@@ -20,17 +32,20 @@ export function Ga4DiscoveryControl({
   successLabel: string;
   failureLabel: string;
   networkErrorLabel: string;
+  errorMessages: Record<string, string>;
   showReconnect?: boolean;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  const [reconnectSuggested, setReconnectSuggested] = useState(showReconnect);
 
   async function discover() {
     setPending(true);
     setMessage(null);
     setFailed(false);
+    setReconnectSuggested(showReconnect);
     try {
       const response = await fetch("/api/integrations/ga4/properties", {
         method: "POST",
@@ -38,8 +53,15 @@ export function Ga4DiscoveryControl({
       });
       const body = await response.json().catch(() => ({})) as DiscoveryResponse;
       if (!response.ok || body.status === "failed") {
+        const result = body.results?.find((item) => item.ok === false);
         setFailed(true);
-        setMessage(failureLabel);
+        setReconnectSuggested(showReconnect || Boolean(result?.reconnectRequired));
+        setMessage(
+          (result?.code ? errorMessages[result.code] : null)
+          || result?.message
+          || body.message
+          || failureLabel,
+        );
         router.refresh();
         return;
       }
@@ -65,7 +87,7 @@ export function Ga4DiscoveryControl({
           {pending ? <LoaderCircle size={13} className="animate-spin" /> : <RefreshCw size={13} />}
           {retryLabel}
         </button>
-        {showReconnect ? (
+        {reconnectSuggested ? (
           <Link href="/api/auth/google?returnTo=/app/traffic" className="inline-flex h-9 items-center rounded-lg border border-[#dfe3eb] bg-white px-4 text-[11px] font-semibold text-[#344054]">
             {reconnectLabel}
           </Link>

@@ -94,6 +94,16 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
                         successLabel={pick(locale, "GA4 property discovery completed.", "GA4 媒体资源检测已完成。", "El descubrimiento de GA4 se completó.")}
                         failureLabel={pick(locale, "GA4 discovery failed. See the reason above.", "GA4 检测失败，请查看上方原因。", "Falló el descubrimiento de GA4. Consulta el motivo anterior.")}
                         networkErrorLabel={pick(locale, "Could not reach GA4 discovery. Check the connection and retry.", "无法连接 GA4 检测服务，请检查网络后重试。", "No se pudo acceder al servicio de detección GA4. Comprueba la conexión y vuelve a intentarlo.")}
+                        errorMessages={{
+                          api_disabled: ga4DiscoveryError(locale, "api_disabled", null),
+                          scope_missing: ga4DiscoveryError(locale, "scope_missing", null),
+                          reauthorization_required: ga4DiscoveryError(locale, "reauthorization_required", null),
+                          permission_denied: ga4DiscoveryError(locale, "permission_denied", null),
+                          rate_limited: ga4DiscoveryError(locale, "rate_limited", null),
+                          timeout: ga4DiscoveryError(locale, "timeout", null),
+                          temporary_error: ga4DiscoveryError(locale, "temporary_error", null),
+                          discovery_failed: ga4DiscoveryError(locale, "discovery_failed", null),
+                        }}
                         showReconnect={reconnectRequired || accountConnection.ga4DiscoveryStatus === "empty"}
                       />
                     ) : (
