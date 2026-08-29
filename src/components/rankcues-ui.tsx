@@ -177,15 +177,19 @@ export function VisualFrame({ src, alt, priority = false }: { src: string; alt: 
   );
 }
 
-export function MetricCard({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return (
-    <div className="data-card group relative overflow-hidden p-4">
-      <span className="absolute inset-x-0 top-0 h-[2px] origin-left scale-x-0 bg-gradient-to-r from-[#6177f2] to-[#8da2ff] transition-transform duration-300 group-hover:scale-x-100" />
+export function MetricCard({ label, value, detail, href, active = false }: { label: string; value: string; detail: string; href?: string; active?: boolean }) {
+  const className = `data-card group relative overflow-hidden p-4 transition duration-200 ${href ? "block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8da2ff] focus-visible:ring-offset-2 hover:-translate-y-0.5 hover:border-[#c7cffb]" : ""} ${active ? "border-[#aeb9f7] bg-[#fbfbff] shadow-[0_8px_24px_rgba(70,89,188,0.10)]" : ""}`;
+  const content = (
+    <>
+      <span className={`absolute inset-x-0 top-0 h-[2px] origin-left bg-gradient-to-r from-[#6177f2] to-[#8da2ff] transition-transform duration-300 ${active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
       <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#8b94a5]">{label}</p>
       <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#111827]">{value}</p>
       <p className="mt-1 text-[10px] text-[#8b94a5]">{detail}</p>
-    </div>
+    </>
   );
+  return href
+    ? <Link href={href} scroll={false} prefetch={false} aria-current={active ? "true" : undefined} className={className}>{content}</Link>
+    : <div className={className}>{content}</div>;
 }
 
 export function ActionLink({ href, children, tone = "dark" }: { href: string; children: ReactNode; tone?: "dark" | "light" | "yellow" }) {

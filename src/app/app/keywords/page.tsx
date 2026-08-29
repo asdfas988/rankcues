@@ -5,7 +5,7 @@ import { EmptyData } from "@/components/rankcues-dashboard";
 import { KeywordTrackingForm, KeywordTrackingToggle } from "@/components/keyword-tracking-controls";
 import { getKeywordRankHistory, getKeywordRankings, listGscSites } from "@/lib/data-store";
 import { getLocale, pick } from "@/lib/i18n";
-import { parseKeywordRankingSort, parseSortDirection, sortKeywordRankings, type KeywordRankingSort } from "@/lib/keyword-ranking";
+import { filterKeywordRankings, parseKeywordRankingSegment, parseKeywordRankingSort, parseSortDirection, sortKeywordRankings, type KeywordRankingSegment, type KeywordRankingSort } from "@/lib/keyword-ranking";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +21,7 @@ type KeywordSearchParams = {
   page?: string;
   sort?: string;
   order?: string;
+  segment?: string;
 };
 
 function buildUrl(params: KeywordSearchParams, changes: Record<string, string | undefined>) {
@@ -125,28 +126,40 @@ export default async function KeywordsPage({ searchParams }: { searchParams: Pro
   const days = [28, 60, 90].includes(Number(rawParams.days)) ? Number(rawParams.days) : 28;
   const sortField = parseKeywordRankingSort(rawParams.sort);
   const sortDirection = parseSortDirection(rawParams.order, sortField);
+  const segment = parseKeywordRankingSegment(rawParams.segment);
   const [allSites, rows, locale] = await Promise.all([
     listGscSites(),
     getKeywordRankings({ siteId: rawParams.site, search: rawParams.q, device, trackedOnly }),
     getLocale(),
   ]);
   const sites = allSites.filter((item) => item.active && item.permissionLevel !== "siteUnverifiedUser");
-  const sortedRows = sortKeywordRankings(rows, sortField, sortDirection);
-  const trackedCount = rows.filter((row) => row.tracked).length;
-  const observedCount = rows.filter((row) => row.impressions > 0).length;
-  const topTen = rows.filter((row) => row.position > 0 && row.position <= 10).length;
-  const moving = rows.filter((row) => row.previousPosition > 0 && Math.abs(row.previousPosition - row.position) >= 2).length;
+  const segmentRows = filterKeywordRankings(rows, segment);
+  const sortedRows = sortKeywordRankings(segmentRows, sortField, sortDirection);
+  const segmentCounts: Record<KeywordRankingSegment, number> = {
+    tracked: filterKeywordRankings(rows, "tracked").length,
+    observed: filterKeywordRankings(rows, "observed").length,
+    top10: filterKeywordRankings(rows, "top10").length,
+    moving: filterKeywordRankings(rows, "moving").length,
+  };
   const pageSize = 50;
   const pageCount = Math.max(1, Math.ceil(sortedRows.length / pageSize));
   const currentPage = Math.min(Math.max(1, Number.parseInt(rawParams.page || "1", 10) || 1), pageCount);
   const pageRows = sortedRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const selectedRow = rawParams.keyword && rawParams.keywordSite
-    ? rows.find((row) => row.siteId === rawParams.keywordSite && row.keyword === rawParams.keyword)
+    ? segmentRows.find((row) => row.siteId === rawParams.keywordSite && row.keyword === rawParams.keyword)
     : undefined;
   const history = selectedRow
     ? await getKeywordRankHistory({ siteId: selectedRow.siteId, keyword: selectedRow.keyword, device, days })
     : [];
   const defaultSiteId = rawParams.site || sites[0]?.id || "";
+  const activeSegment = segment || (trackedOnly ? "tracked" : null);
+  const segmentUrl = (target: KeywordRankingSegment) => buildUrl(rawParams, {
+    segment: activeSegment === target ? undefined : target,
+    scope: undefined,
+    page: undefined,
+    keyword: undefined,
+    keywordSite: undefined,
+  });
 
   return (
     <AppShell active="/app/keywords" locale={locale} localizeChildren={false}>
@@ -186,15 +199,16 @@ export default async function KeywordsPage({ searchParams }: { searchParams: Pro
         </section>
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label={pick(locale, "Tracked", "已追踪", "Seguidas")} value={trackedCount.toLocaleString()} detail={pick(locale, "Manually monitored queries", "手动监控的关键词", "Consultas supervisadas manualmente")} />
-          <MetricCard label={pick(locale, "Observed", "已有数据", "Observadas")} value={observedCount.toLocaleString()} detail={pick(locale, "Queries with GSC impressions", "GSC 已产生展示的关键词", "Consultas con impresiones en GSC")} />
-          <MetricCard label={pick(locale, "Top 10", "前 10 名", "Top 10")} value={topTen.toLocaleString()} detail={pick(locale, "Current seven-day average", "当前 7 天平均排名", "Promedio actual de siete días")} />
-          <MetricCard label={pick(locale, "Material movers", "明显波动", "Cambios relevantes")} value={moving.toLocaleString()} detail={pick(locale, "Moved at least 2 positions", "至少变化 2 个名次", "Cambio mínimo de 2 posiciones")} />
+          <MetricCard href={segmentUrl("tracked")} active={activeSegment === "tracked"} label={pick(locale, "Tracked", "已追踪", "Seguidas")} value={segmentCounts.tracked.toLocaleString()} detail={pick(locale, "Manually monitored queries", "手动监控的关键词", "Consultas supervisadas manualmente")} />
+          <MetricCard href={segmentUrl("observed")} active={activeSegment === "observed"} label={pick(locale, "Observed", "已有数据", "Observadas")} value={segmentCounts.observed.toLocaleString()} detail={pick(locale, "Queries with GSC impressions", "GSC 已产生展示的关键词", "Consultas con impresiones en GSC")} />
+          <MetricCard href={segmentUrl("top10")} active={activeSegment === "top10"} label={pick(locale, "Top 10", "前 10 名", "Top 10")} value={segmentCounts.top10.toLocaleString()} detail={pick(locale, "Current seven-day average", "当前 7 天平均排名", "Promedio actual de siete días")} />
+          <MetricCard href={segmentUrl("moving")} active={activeSegment === "moving"} label={pick(locale, "Material movers", "明显波动", "Cambios relevantes")} value={segmentCounts.moving.toLocaleString()} detail={pick(locale, "Moved at least 2 positions", "至少变化 2 个名次", "Cambio mínimo de 2 posiciones")} />
         </section>
 
         <section className="data-panel p-4 sm:p-5">
           <form method="get" className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_minmax(160px,0.55fr)_140px_150px_auto]">
             {sortField ? <><input type="hidden" name="sort" value={sortField} /><input type="hidden" name="order" value={sortDirection} /></> : null}
+            {segment ? <input type="hidden" name="segment" value={segment} /> : null}
             <label className="relative">
               <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#98a2b3]" />
               <input name="q" defaultValue={rawParams.q} placeholder={pick(locale, "Search keywords", "搜索关键词", "Buscar palabras clave")} className="h-10 w-full rounded-lg border border-[#dfe3eb] bg-white pl-9 pr-3 text-[11px] outline-none focus:border-[#8da2ff]" />
@@ -215,7 +229,7 @@ export default async function KeywordsPage({ searchParams }: { searchParams: Pro
             </select>
             <div className="flex gap-2">
               <button className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-[#111827] px-4 text-[11px] font-semibold text-white">{pick(locale, "Apply filters", "应用筛选", "Aplicar filtros")}</button>
-              {(rawParams.q || rawParams.site || rawParams.device || rawParams.scope) ? <Link href="/app/keywords" aria-label={pick(locale, "Clear filters", "清除筛选", "Borrar filtros")} className="inline-flex size-10 items-center justify-center rounded-lg border border-[#dfe3eb] bg-white text-[#667085]"><X size={14} /></Link> : null}
+              {(rawParams.q || rawParams.site || rawParams.device || rawParams.scope || segment) ? <Link href="/app/keywords" aria-label={pick(locale, "Clear filters", "清除筛选", "Borrar filtros")} className="inline-flex size-10 items-center justify-center rounded-lg border border-[#dfe3eb] bg-white text-[#667085]"><X size={14} /></Link> : null}
             </div>
           </form>
         </section>
@@ -227,9 +241,9 @@ export default async function KeywordsPage({ searchParams }: { searchParams: Pro
                 <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[#8b94a5]">{pick(locale, "Comparable seven-day windows", "可比的 7 天窗口", "Ventanas comparables de siete días")}</p>
                 <h2 className="mt-1 text-base font-semibold">{pick(locale, "Keyword ranking ledger", "关键词排名明细", "Registro de posiciones")}</h2>
               </div>
-              <span className="rounded-md bg-[#f2f4f7] px-2 py-1 font-mono text-[9px] text-[#667085]">{rows.length.toLocaleString()} {pick(locale, "rows", "条", "filas")}</span>
+              <span className="rounded-md bg-[#f2f4f7] px-2 py-1 font-mono text-[9px] text-[#667085]">{segmentRows.length.toLocaleString()} {pick(locale, "rows", "条", "filas")}</span>
             </div>
-            {!rows.length ? (
+            {!segmentRows.length ? (
               <div className="p-5">
                 <EmptyData
                   title={pick(locale, "No keyword rankings match these filters", "没有符合筛选条件的关键词排名", "Ninguna posición coincide con estos filtros")}

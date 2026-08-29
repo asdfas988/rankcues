@@ -7,7 +7,8 @@ import {
   listGoogleSearchConsoleSites,
 } from "@/lib/google-search-console";
 import { listGoogleAnalyticsProperties } from "@/lib/google-analytics";
-import { authorizeGoogleIdentity, upsertGa4Properties, upsertGoogleConnection, upsertGscSites } from "@/lib/data-store";
+import { classifyGa4DiscoveryError } from "@/lib/google-analytics-errors";
+import { authorizeGoogleIdentity, updateGa4DiscoveryStatus, upsertGa4Properties, upsertGoogleConnection, upsertGscSites } from "@/lib/data-store";
 
 export const runtime = "nodejs";
 
@@ -95,11 +96,25 @@ export async function GET(request: Request) {
     let ga4Status = "connected";
     try {
       const properties = await listGoogleAnalyticsProperties(tokens.access_token);
-      await upsertGa4Properties(connection.id, properties);
+      await upsertGa4Properties(connection.id, properties, { workspaceId: access.workspaceId });
       ga4Count = properties.length;
+      ga4Status = properties.length ? "ready" : "empty";
+      await updateGa4DiscoveryStatus({
+        connectionId: connection.id,
+        workspaceId: access.workspaceId,
+        status: properties.length ? "ready" : "empty",
+      });
     } catch (error) {
-      ga4Status = "unavailable";
-      console.warn("Google OAuth completed but GA4 discovery was unavailable", error);
+      const issue = classifyGa4DiscoveryError(error);
+      ga4Status = issue.code;
+      await updateGa4DiscoveryStatus({
+        connectionId: connection.id,
+        workspaceId: access.workspaceId,
+        status: "failed",
+        errorCode: issue.code,
+        error: issue.message,
+      });
+      console.warn("Google OAuth completed but GA4 discovery was unavailable", issue.code);
     }
     const response = redirectWithStatus(request, "connected", {
       sites: String(sites.length),

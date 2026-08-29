@@ -13,6 +13,10 @@ export type StoredGoogleConnection = {
   scopes: string[];
   status: string;
   lastError: string | null;
+  ga4DiscoveryStatus: string;
+  ga4DiscoveryErrorCode: string | null;
+  ga4DiscoveryError: string | null;
+  ga4DiscoveredAt: Date | null;
 };
 
 export type StoredSite = {
@@ -169,6 +173,10 @@ function mapConnection(row: Record<string, unknown>): StoredGoogleConnection {
     scopes: Array.isArray(row.scopes) ? row.scopes.map(String) : [],
     status: String(row.status),
     lastError: row.last_error ? String(row.last_error) : null,
+    ga4DiscoveryStatus: row.ga4_discovery_status ? String(row.ga4_discovery_status) : "not_checked",
+    ga4DiscoveryErrorCode: row.ga4_discovery_error_code ? String(row.ga4_discovery_error_code) : null,
+    ga4DiscoveryError: row.ga4_discovery_error ? String(row.ga4_discovery_error) : null,
+    ga4DiscoveredAt: row.ga4_discovered_at ? new Date(String(row.ga4_discovered_at)) : null,
   };
 }
 
@@ -390,25 +398,46 @@ export async function markGoogleConnectionError(connectionId: string, error: str
   `;
 }
 
-export async function listGoogleConnections() {
+export async function updateGa4DiscoveryStatus(input: {
+  connectionId: string;
+  workspaceId?: string;
+  status: "ready" | "empty" | "failed";
+  errorCode?: string | null;
+  error?: string | null;
+}) {
+  await ensureDatabaseSchema();
+  const sql = getDatabase();
+  const currentWorkspaceId = input.workspaceId || workspaceId();
+  await sql`
+    update rankcues_google_connections set
+      ga4_discovery_status = ${input.status},
+      ga4_discovery_error_code = ${input.errorCode ?? null},
+      ga4_discovery_error = ${input.error?.slice(0, 500) ?? null},
+      ga4_discovered_at = now(),
+      updated_at = now()
+    where id = ${input.connectionId} and workspace_id = ${currentWorkspaceId}
+  `;
+}
+
+export async function listGoogleConnections(currentWorkspaceId = workspaceId()) {
   if (!isDatabaseConfigured()) return [];
   await ensureDatabaseSchema();
   const sql = getDatabase();
   const rows = await sql`
     select * from rankcues_google_connections
-    where workspace_id = ${workspaceId()}
+    where workspace_id = ${currentWorkspaceId}
     order by updated_at desc
   `;
   return rows.map(mapConnection);
 }
 
-export async function getGoogleConnectionById(connectionId: string) {
+export async function getGoogleConnectionById(connectionId: string, currentWorkspaceId = workspaceId()) {
   if (!isDatabaseConfigured()) return null;
   await ensureDatabaseSchema();
   const sql = getDatabase();
   const [row] = await sql`
     select * from rankcues_google_connections
-    where id = ${connectionId} and workspace_id = ${workspaceId()}
+    where id = ${connectionId} and workspace_id = ${currentWorkspaceId}
     limit 1
   `;
   return row ? mapConnection(row) : null;
@@ -1380,10 +1409,14 @@ export type Ga4PropertyInput = {
   timeZone?: string | null;
 };
 
-export async function upsertGa4Properties(connectionId: string, properties: Ga4PropertyInput[]) {
+export async function upsertGa4Properties(
+  connectionId: string,
+  properties: Ga4PropertyInput[],
+  options?: { workspaceId?: string },
+) {
   await ensureDatabaseSchema();
   const sql = getDatabase();
-  const currentWorkspaceId = workspaceId();
+  const currentWorkspaceId = options?.workspaceId || workspaceId();
   for (const property of properties) {
     const id = stableId(currentWorkspaceId, "ga4", property.propertyId);
     await sql`
@@ -1405,10 +1438,10 @@ export async function upsertGa4Properties(connectionId: string, properties: Ga4P
         updated_at = now()
     `;
   }
-  return listGa4Properties();
+  return listGa4Properties(currentWorkspaceId);
 }
 
-export async function listGa4Properties() {
+export async function listGa4Properties(currentWorkspaceId = workspaceId()) {
   if (!isDatabaseConfigured()) return [];
   await ensureDatabaseSchema();
   const sql = getDatabase();
@@ -1419,7 +1452,7 @@ export async function listGa4Properties() {
     from rankcues_ga4_properties p
     left join rankcues_sites s on s.id = p.site_id
     left join rankcues_ga4_metrics m on m.property_id = p.id
-    where p.workspace_id = ${workspaceId()}
+    where p.workspace_id = ${currentWorkspaceId}
     group by p.id, s.site_url
     order by p.display_name
   `;

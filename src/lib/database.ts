@@ -109,6 +109,10 @@ async function createSchema() {
       scopes jsonb not null default '[]'::jsonb,
       status text not null default 'connected',
       last_error text,
+      ga4_discovery_status text not null default 'not_checked',
+      ga4_discovery_error_code text,
+      ga4_discovery_error text,
+      ga4_discovered_at timestamptz,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now(),
       unique (workspace_id, google_subject)
@@ -526,6 +530,14 @@ async function createSchema() {
       created_at timestamptz not null default now(),
       unique (workspace_id, email)
     )
+  `;
+
+  await sql`
+    alter table rankcues_google_connections
+      add column if not exists ga4_discovery_status text not null default 'not_checked',
+      add column if not exists ga4_discovery_error_code text,
+      add column if not exists ga4_discovery_error text,
+      add column if not exists ga4_discovered_at timestamptz
   `;
 
   await sql`

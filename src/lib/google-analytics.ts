@@ -11,22 +11,15 @@ import {
   saveGa4Metrics,
   stableId,
   updateGoogleConnectionToken,
+  updateGa4DiscoveryStatus,
   upsertGa4Properties,
   type Ga4MetricInput,
 } from "@/lib/data-store";
 import { refreshGoogleToken } from "@/lib/google-search-console";
+import { classifyGa4DiscoveryError } from "@/lib/google-analytics-errors";
+import { listGoogleAnalyticsProperties } from "@/lib/google-analytics-admin";
 
-const accountSummariesSchema = z.object({
-  accountSummaries: z.array(z.object({
-    account: z.string(),
-    displayName: z.string().optional(),
-    propertySummaries: z.array(z.object({
-      property: z.string(),
-      displayName: z.string(),
-    })).optional(),
-  })).optional(),
-  nextPageToken: z.string().optional(),
-});
+export { listGoogleAnalyticsProperties } from "@/lib/google-analytics-admin";
 
 const reportSchema = z.object({
   dimensionHeaders: z.array(z.object({ name: z.string() })).optional(),
@@ -48,35 +41,8 @@ async function googleJson(response: Response, label: string) {
   return json;
 }
 
-export async function listGoogleAnalyticsProperties(accessToken: string) {
-  const properties: Array<{ accountId: string; propertyId: string; displayName: string }> = [];
-  let pageToken = "";
-  do {
-    const url = new URL("https://analyticsadmin.googleapis.com/v1alpha/accountSummaries");
-    url.searchParams.set("pageSize", "200");
-    if (pageToken) url.searchParams.set("pageToken", pageToken);
-    const response = await fetch(url, {
-      headers: { authorization: `Bearer ${accessToken}` },
-      cache: "no-store",
-      signal: AbortSignal.timeout(20_000),
-    });
-    const parsed = accountSummariesSchema.parse(await googleJson(response, "Analytics property listing"));
-    for (const account of parsed.accountSummaries ?? []) {
-      for (const property of account.propertySummaries ?? []) {
-        properties.push({
-          accountId: account.account.replace(/^accounts\//, ""),
-          propertyId: property.property.replace(/^properties\//, ""),
-          displayName: property.displayName,
-        });
-      }
-    }
-    pageToken = parsed.nextPageToken || "";
-  } while (pageToken);
-  return properties;
-}
-
-async function freshAccessToken(connectionId: string) {
-  const connection = await getGoogleConnectionById(connectionId);
+async function freshAccessToken(connectionId: string, currentWorkspaceId?: string) {
+  const connection = await getGoogleConnectionById(connectionId, currentWorkspaceId);
   if (!connection) throw new Error("Google connection was not found.");
   const tokens = revealConnectionTokens(connection);
   if (connection.expiresAt && connection.expiresAt.getTime() > Date.now() + 5 * 60_000) {
@@ -99,10 +65,28 @@ async function freshAccessToken(connectionId: string) {
   }
 }
 
-export async function discoverGa4PropertiesForConnection(connectionId: string) {
-  const accessToken = await freshAccessToken(connectionId);
-  const properties = await listGoogleAnalyticsProperties(accessToken);
-  return upsertGa4Properties(connectionId, properties);
+export async function discoverGa4PropertiesForConnection(connectionId: string, currentWorkspaceId?: string) {
+  try {
+    const accessToken = await freshAccessToken(connectionId, currentWorkspaceId);
+    const properties = await listGoogleAnalyticsProperties(accessToken);
+    await upsertGa4Properties(connectionId, properties, { workspaceId: currentWorkspaceId });
+    await updateGa4DiscoveryStatus({
+      connectionId,
+      workspaceId: currentWorkspaceId,
+      status: properties.length ? "ready" : "empty",
+    });
+    return properties;
+  } catch (error) {
+    const issue = classifyGa4DiscoveryError(error);
+    await updateGa4DiscoveryStatus({
+      connectionId,
+      workspaceId: currentWorkspaceId,
+      status: "failed",
+      errorCode: issue.code,
+      error: issue.message,
+    });
+    throw Object.assign(new Error(issue.message), { code: issue.code, reconnectRequired: issue.reconnectRequired });
+  }
 }
 
 function numeric(value: string | undefined) {
