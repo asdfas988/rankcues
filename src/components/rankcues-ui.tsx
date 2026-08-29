@@ -82,8 +82,18 @@ export function MarketingHeader({ variant = "dark" }: { variant?: "dark" | "ligh
   );
 }
 
-export async function AppShell({ active, children }: { active: string; children: ReactNode }) {
-  const locale = await getLocale();
+export async function AppShell({
+  active,
+  children,
+  localizeChildren = true,
+  locale: providedLocale,
+}: {
+  active: string;
+  children: ReactNode;
+  localizeChildren?: boolean;
+  locale?: AppLocale;
+}) {
+  const locale = providedLocale || await getLocale();
   return (
     <main className="min-h-screen bg-[#f4f6fa] text-[#111827]">
       <div className="grid min-h-screen min-w-0 grid-cols-[minmax(0,1fr)] lg:grid-cols-[224px_minmax(0,1fr)]">
@@ -139,7 +149,7 @@ export async function AppShell({ active, children }: { active: string; children:
               </div>
             </div>
           </div>
-          {localizeNode(children, locale)}
+          {localizeChildren ? localizeNode(children, locale) : children}
         </section>
       </div>
     </main>

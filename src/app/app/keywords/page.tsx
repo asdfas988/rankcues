@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { ArrowDown, ArrowRight, ArrowUp, BarChart3, CalendarSearch, Crosshair, Plus, Search, Star, X } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, BarChart3, CalendarSearch, Crosshair, Search, X } from "lucide-react";
 import { AppShell, MetricCard, PageHeader } from "@/components/rankcues-ui";
 import { EmptyData } from "@/components/rankcues-dashboard";
+import { KeywordTrackingForm, KeywordTrackingToggle } from "@/components/keyword-tracking-controls";
 import { getKeywordRankHistory, getKeywordRankings, listGscSites } from "@/lib/data-store";
 import { getLocale, pick } from "@/lib/i18n";
+import { parseKeywordRankingSort, parseSortDirection, sortKeywordRankings, type KeywordRankingSort } from "@/lib/keyword-ranking";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,8 @@ type KeywordSearchParams = {
   days?: string;
   tracked?: string;
   page?: string;
+  sort?: string;
+  order?: string;
 };
 
 function buildUrl(params: KeywordSearchParams, changes: Record<string, string | undefined>) {
@@ -85,33 +89,67 @@ function RankHistoryChart({
   );
 }
 
+function SortableHeader({
+  field,
+  label,
+  params,
+  activeField,
+  direction,
+}: {
+  field: KeywordRankingSort;
+  label: string;
+  params: KeywordSearchParams;
+  activeField: KeywordRankingSort | null;
+  direction: "asc" | "desc";
+}) {
+  const active = activeField === field;
+  const nextDirection = active ? (direction === "asc" ? "desc" : "asc") : (field === "position" ? "asc" : "desc");
+  return (
+    <th className="px-4 py-3 font-medium" aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}>
+      <Link
+        href={buildUrl(params, { sort: field, order: nextDirection, page: undefined })}
+        className={`inline-flex items-center gap-1.5 whitespace-nowrap transition hover:text-[#344054] ${active ? "text-[#344054]" : ""}`}
+        title={label}
+      >
+        {label}
+        {active ? (direction === "asc" ? <ArrowUp size={11} /> : <ArrowDown size={11} />) : <span className="flex flex-col text-[#c0c6d0]" aria-hidden="true"><ArrowUp size={8} /><ArrowDown size={8} className="-mt-0.5" /></span>}
+      </Link>
+    </th>
+  );
+}
+
 export default async function KeywordsPage({ searchParams }: { searchParams: Promise<KeywordSearchParams> }) {
   const rawParams = await searchParams;
   const device = (["DESKTOP", "MOBILE", "TABLET"].includes(rawParams.device || "") ? rawParams.device : "ALL") as "ALL" | "DESKTOP" | "MOBILE" | "TABLET";
   const trackedOnly = rawParams.scope === "tracked";
   const days = [28, 60, 90].includes(Number(rawParams.days)) ? Number(rawParams.days) : 28;
-  const sites = (await listGscSites()).filter((item) => item.active && item.permissionLevel !== "siteUnverifiedUser");
-  const [rows, locale] = await Promise.all([
+  const sortField = parseKeywordRankingSort(rawParams.sort);
+  const sortDirection = parseSortDirection(rawParams.order, sortField);
+  const [allSites, rows, locale] = await Promise.all([
+    listGscSites(),
     getKeywordRankings({ siteId: rawParams.site, search: rawParams.q, device, trackedOnly }),
     getLocale(),
   ]);
+  const sites = allSites.filter((item) => item.active && item.permissionLevel !== "siteUnverifiedUser");
+  const sortedRows = sortKeywordRankings(rows, sortField, sortDirection);
   const trackedCount = rows.filter((row) => row.tracked).length;
   const observedCount = rows.filter((row) => row.impressions > 0).length;
   const topTen = rows.filter((row) => row.position > 0 && row.position <= 10).length;
   const moving = rows.filter((row) => row.previousPosition > 0 && Math.abs(row.previousPosition - row.position) >= 2).length;
   const pageSize = 50;
-  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const pageCount = Math.max(1, Math.ceil(sortedRows.length / pageSize));
   const currentPage = Math.min(Math.max(1, Number.parseInt(rawParams.page || "1", 10) || 1), pageCount);
-  const pageRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const selectedRow = rows.find((row) => row.siteId === rawParams.keywordSite && row.keyword === rawParams.keyword) || pageRows.find((row) => row.tracked) || pageRows[0];
+  const pageRows = sortedRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const selectedRow = rawParams.keyword && rawParams.keywordSite
+    ? rows.find((row) => row.siteId === rawParams.keywordSite && row.keyword === rawParams.keyword)
+    : undefined;
   const history = selectedRow
     ? await getKeywordRankHistory({ siteId: selectedRow.siteId, keyword: selectedRow.keyword, device, days })
     : [];
-  const currentUrl = buildUrl(rawParams, {});
   const defaultSiteId = rawParams.site || sites[0]?.id || "";
 
   return (
-    <AppShell active="/app/keywords">
+    <AppShell active="/app/keywords" locale={locale} localizeChildren={false}>
       <PageHeader
         kicker={pick(locale, "Rank tracking", "排名追踪", "Seguimiento de posiciones")}
         title={pick(locale, "Know exactly which queries are moving", "准确掌握每个关键词的排名变化", "Conoce exactamente qué consultas están cambiando")}
@@ -122,31 +160,25 @@ export default async function KeywordsPage({ searchParams }: { searchParams: Pro
       <div className="grid gap-4 px-4 pb-10 sm:px-6 lg:px-8">
         <section className="data-panel p-4 sm:p-5">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <form action="/api/keywords/track" method="post" className="grid flex-1 gap-3 sm:grid-cols-[minmax(150px,0.8fr)_minmax(220px,1.4fr)_140px_auto]">
-              <input type="hidden" name="redirectTo" value={currentUrl} />
-              <label className="grid gap-1.5 text-[10px] font-semibold text-[#667085]">
-                {pick(locale, "Property", "网站", "Propiedad")}
-                <select name="siteId" defaultValue={defaultSiteId} required className="h-10 rounded-lg border border-[#dfe3eb] bg-white px-3 text-[11px] text-[#111827] outline-none focus:border-[#8da2ff]">
-                  {sites.map((site) => <option key={site.id} value={site.id}>{cleanSite(site.siteUrl)}</option>)}
-                </select>
-              </label>
-              <label className="grid gap-1.5 text-[10px] font-semibold text-[#667085]">
-                {pick(locale, "Keyword to track", "要追踪的关键词", "Palabra clave para seguir")}
-                <input name="keyword" required maxLength={300} placeholder={pick(locale, "e.g. technical SEO monitoring", "例如：技术 SEO 监控", "p. ej. monitoreo SEO técnico")} className="h-10 rounded-lg border border-[#dfe3eb] bg-white px-3 text-[11px] text-[#111827] outline-none placeholder:text-[#a7afbd] focus:border-[#8da2ff]" />
-              </label>
-              <label className="grid gap-1.5 text-[10px] font-semibold text-[#667085]">
-                {pick(locale, "Device", "设备", "Dispositivo")}
-                <select name="device" defaultValue={device} className="h-10 rounded-lg border border-[#dfe3eb] bg-white px-3 text-[11px] text-[#111827] outline-none focus:border-[#8da2ff]">
-                  <option value="ALL">{pick(locale, "All devices", "所有设备", "Todos")}</option>
-                  <option value="DESKTOP">{pick(locale, "Desktop", "桌面设备", "Escritorio")}</option>
-                  <option value="MOBILE">{pick(locale, "Mobile", "移动设备", "Móvil")}</option>
-                  <option value="TABLET">{pick(locale, "Tablet", "平板设备", "Tableta")}</option>
-                </select>
-              </label>
-              <button disabled={!sites.length} className="mt-auto inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#111827] px-4 text-[11px] font-semibold text-white transition hover:bg-[#263244] disabled:cursor-not-allowed disabled:opacity-40">
-                <Plus size={14} /> {pick(locale, "Track keyword", "开始追踪", "Seguir palabra")}
-              </button>
-            </form>
+            <KeywordTrackingForm
+              sites={sites.map((site) => ({ id: site.id, label: cleanSite(site.siteUrl) }))}
+              defaultSiteId={defaultSiteId}
+              defaultDevice={device}
+              labels={{
+                property: pick(locale, "Property", "网站", "Propiedad"),
+                keyword: pick(locale, "Keyword to track", "要追踪的关键词", "Palabra clave para seguir"),
+                device: pick(locale, "Device", "设备", "Dispositivo"),
+                allDevices: pick(locale, "All devices", "所有设备", "Todos"),
+                desktop: pick(locale, "Desktop", "桌面设备", "Escritorio"),
+                mobile: pick(locale, "Mobile", "移动设备", "Móvil"),
+                tablet: pick(locale, "Tablet", "平板设备", "Tableta"),
+                placeholder: pick(locale, "e.g. technical SEO monitoring", "例如：技术 SEO 监控", "p. ej. monitoreo SEO técnico"),
+                submit: pick(locale, "Track keyword", "开始追踪", "Seguir palabra"),
+                submitting: pick(locale, "Adding...", "正在添加...", "Añadiendo..."),
+                success: pick(locale, "{keyword} is now tracked.", "已开始监控“{keyword}”。", "Ahora se sigue {keyword}."),
+                failed: pick(locale, "Could not update keyword tracking.", "无法更新关键词监控。", "No se pudo actualizar el seguimiento."),
+              }}
+            />
           </div>
           <p className="mt-3 text-[10px] leading-5 text-[#8b94a5]">
             {pick(locale, "Rankings are Google Search Console average positions, not simulated live SERP positions. New keywords appear after Google records impressions.", "排名来自 Google Search Console 的平均排名，并非模拟的实时搜索结果位置。新关键词会在 Google 记录到展示后出现数据。", "Las posiciones son promedios de Google Search Console, no resultados SERP simulados en vivo. Las palabras nuevas muestran datos cuando Google registra impresiones.")}
@@ -162,6 +194,7 @@ export default async function KeywordsPage({ searchParams }: { searchParams: Pro
 
         <section className="data-panel p-4 sm:p-5">
           <form method="get" className="grid gap-3 lg:grid-cols-[minmax(220px,1fr)_minmax(160px,0.55fr)_140px_150px_auto]">
+            {sortField ? <><input type="hidden" name="sort" value={sortField} /><input type="hidden" name="order" value={sortDirection} /></> : null}
             <label className="relative">
               <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#98a2b3]" />
               <input name="q" defaultValue={rawParams.q} placeholder={pick(locale, "Search keywords", "搜索关键词", "Buscar palabras clave")} className="h-10 w-full rounded-lg border border-[#dfe3eb] bg-white pl-9 pr-3 text-[11px] outline-none focus:border-[#8da2ff]" />
@@ -210,7 +243,14 @@ export default async function KeywordsPage({ searchParams }: { searchParams: Pro
                   <thead className="bg-[#f8fafc] font-mono uppercase tracking-[0.08em] text-[#8b94a5]">
                     <tr>
                       <th className="w-12 px-3 py-3 font-medium"><span className="sr-only">{pick(locale, "Tracking", "追踪", "Seguimiento")}</span></th>
-                      {[pick(locale, "Keyword", "关键词", "Palabra clave"), pick(locale, "Property", "网站", "Propiedad"), pick(locale, "GSC position", "GSC 排名", "Posición GSC"), pick(locale, "7-day movement", "7 天变化", "Cambio en 7 días"), pick(locale, "Impressions", "展示", "Impresiones"), pick(locale, "Clicks", "点击", "Clics"), pick(locale, "Best landing page", "最佳着陆页", "Mejor página de destino"), pick(locale, "Data through", "数据截至", "Datos hasta")].map((label) => <th key={label} className="px-4 py-3 font-medium">{label}</th>)}
+                      <th className="px-4 py-3 font-medium">{pick(locale, "Keyword", "关键词", "Palabra clave")}</th>
+                      <th className="px-4 py-3 font-medium">{pick(locale, "Property", "网站", "Propiedad")}</th>
+                      <SortableHeader field="position" label={pick(locale, "GSC position", "GSC 排名", "Posición GSC")} params={rawParams} activeField={sortField} direction={sortDirection} />
+                      <th className="px-4 py-3 font-medium">{pick(locale, "7-day movement", "7 天变化", "Cambio en 7 días")}</th>
+                      <SortableHeader field="impressions" label={pick(locale, "Impressions", "展示", "Impresiones")} params={rawParams} activeField={sortField} direction={sortDirection} />
+                      <SortableHeader field="clicks" label={pick(locale, "Clicks", "点击", "Clics")} params={rawParams} activeField={sortField} direction={sortDirection} />
+                      <th className="px-4 py-3 font-medium">{pick(locale, "Best landing page", "最佳着陆页", "Mejor página de destino")}</th>
+                      <th className="px-4 py-3 font-medium">{pick(locale, "Data through", "数据截至", "Datos hasta")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#edf0f5]">
@@ -221,18 +261,18 @@ export default async function KeywordsPage({ searchParams }: { searchParams: Pro
                       return (
                         <tr key={row.id} className={isSelected ? "bg-[#f5f7ff]" : "hover:bg-[#fafbfc]"}>
                           <td className="px-3 py-3">
-                            <form action="/api/keywords/track" method="post">
-                              <input type="hidden" name="redirectTo" value={detailUrl} />
-                              <input type="hidden" name="siteId" value={row.siteId} />
-                              <input type="hidden" name="keyword" value={row.keyword} />
-                              <input type="hidden" name="device" value={row.trackedDevice || device} />
-                              {row.tracked ? <><input type="hidden" name="action" value="untrack" /><input type="hidden" name="trackedId" value={row.trackedId || ""} /></> : null}
-                              <button title={row.tracked ? pick(locale, "Stop tracking", "停止追踪", "Dejar de seguir") : pick(locale, "Track keyword", "追踪关键词", "Seguir palabra")} className={`flex size-8 items-center justify-center rounded-lg border transition ${row.tracked ? "border-[#c8d0ff] bg-[#eef1ff] text-[#5268d9]" : "border-[#e3e7ef] bg-white text-[#a7afbd] hover:text-[#5268d9]"}`}>
-                                <Star size={13} fill={row.tracked ? "currentColor" : "none"} />
-                              </button>
-                            </form>
+                            <KeywordTrackingToggle
+                              siteId={row.siteId}
+                              keyword={row.keyword}
+                              device={row.trackedDevice || device}
+                              initialTracked={row.tracked}
+                              initialTrackedId={row.trackedId}
+                              trackLabel={pick(locale, "Track keyword", "追踪关键词", "Seguir palabra")}
+                              untrackLabel={pick(locale, "Stop tracking", "停止追踪", "Dejar de seguir")}
+                              failedLabel={pick(locale, "Could not update keyword tracking.", "无法更新关键词监控。", "No se pudo actualizar el seguimiento.")}
+                            />
                           </td>
-                          <td className="max-w-[270px] px-4 py-3"><Link href={detailUrl} className="block truncate text-[11px] font-semibold text-[#111827] hover:text-[#5268d9]">{row.keyword}</Link>{row.tracked ? <span className="mt-1 inline-block rounded bg-[#eef1ff] px-1.5 py-0.5 font-mono text-[7px] font-semibold uppercase text-[#5268d9]">{pick(locale, "Tracked", "已追踪", "Seguida")}</span> : null}</td>
+                          <td className="max-w-[270px] px-4 py-3"><Link href={detailUrl} className="block truncate text-[11px] font-semibold text-[#111827] hover:text-[#5268d9]">{row.keyword}</Link></td>
                           <td className="max-w-[170px] truncate px-4 py-3 text-[#667085]">{cleanSite(row.siteUrl)}</td>
                           <td className="px-4 py-3 font-mono text-[11px] font-semibold text-[#111827]">{row.position > 0 ? row.position.toFixed(1) : <span className="font-sans text-[9px] font-medium text-[#98a2b3]">{pick(locale, "Waiting for GSC", "等待 GSC 数据", "Esperando GSC")}</span>}</td>
                           <td className={`px-4 py-3 font-mono font-semibold ${movement > 0 ? "text-[#087f6b]" : movement < 0 ? "text-[#b42318]" : "text-[#98a2b3]"}`}>
