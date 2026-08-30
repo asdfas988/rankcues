@@ -1441,6 +1441,32 @@ export async function upsertGa4Properties(
   return listGa4Properties(currentWorkspaceId);
 }
 
+export async function getWorkspaceSetupProgress() {
+  if (!isDatabaseConfigured()) return { crawledSiteIds: [] as string[], reportCount: 0 };
+  await ensureDatabaseSchema();
+  const sql = getDatabase();
+  const [crawlRows, reportRows] = await Promise.all([
+    sql`
+      select distinct site_id
+      from rankcues_page_snapshots
+      where site_id in (
+        select id from rankcues_sites where workspace_id = ${workspaceId()}
+      )
+    `,
+    sql`
+      select count(*)::integer as count
+      from rankcues_weekly_reports
+      where site_id in (
+        select id from rankcues_sites where workspace_id = ${workspaceId()}
+      )
+    `,
+  ]);
+  return {
+    crawledSiteIds: crawlRows.map((row) => String(row.site_id)),
+    reportCount: Number(reportRows[0]?.count || 0),
+  };
+}
+
 export async function listGa4Properties(currentWorkspaceId = workspaceId()) {
   if (!isDatabaseConfigured()) return [];
   await ensureDatabaseSchema();

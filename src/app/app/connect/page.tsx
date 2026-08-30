@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Check, CircleAlert, Database, RefreshCw, ScanSearch, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowRight, BarChart3, Check, Circle, CircleAlert, Database, FileText, RefreshCw, ScanSearch, ShieldCheck, UserRound } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/rankcues-ui";
-import { getPersistencePublicStatus, listGoogleConnections, listGscSites } from "@/lib/data-store";
+import { getPersistencePublicStatus, getWorkspaceSetupProgress, listGa4Properties, listGoogleConnections, listGscSites } from "@/lib/data-store";
 import { getGooglePublicStatus } from "@/lib/google-search-console";
 import { getGoogleServiceAccountPublicStatus, isGoogleServiceAccountSubject } from "@/lib/google-service-account";
 import { getLocale, pick } from "@/lib/i18n";
@@ -46,14 +46,27 @@ export default async function ConnectPage({ searchParams }: Props) {
   const serviceAccount = getGoogleServiceAccountPublicStatus();
   let connections: Awaited<ReturnType<typeof listGoogleConnections>> = [];
   let sites: Awaited<ReturnType<typeof listGscSites>> = [];
+  let ga4Properties: Awaited<ReturnType<typeof listGa4Properties>> = [];
+  let setupProgress: Awaited<ReturnType<typeof getWorkspaceSetupProgress>> = { crawledSiteIds: [], reportCount: 0 };
   let storageError: string | null = null;
   if (persistence.ready) {
-    try { [connections, sites] = await Promise.all([listGoogleConnections(), listGscSites()]); }
+    try { [connections, sites, ga4Properties, setupProgress] = await Promise.all([listGoogleConnections(), listGscSites(), listGa4Properties(), getWorkspaceSetupProgress()]); }
     catch (error) { storageError = error instanceof Error ? error.message : "Database unavailable"; }
   }
   const accountConnections = connections.filter((item) => !isGoogleServiceAccountSubject(item.googleSubject));
   const serviceConnections = connections.filter((item) => isGoogleServiceAccountSubject(item.googleSubject));
   const onlyServiceAccount = serviceConnections.length > 0 && accountConnections.length === 0;
+  const activeSite = sites.find((site) => site.active && site.permissionLevel !== "siteUnverifiedUser");
+  const mappedGa4 = ga4Properties.some((property) => Boolean(property.siteId));
+  const hasCrawl = setupProgress.crawledSiteIds.length > 0;
+  const setupSteps = [
+    { title: "Connect Search Console", detail: "Import the verified properties visible to your Google account.", done: accountConnections.length > 0, href: "/api/auth/google", label: accountConnections.length ? "Connected" : "Connect Google", icon: UserRound },
+    { title: "Choose and sync a site", detail: "Select the property RankCues should investigate first.", done: Boolean(activeSite?.lastSyncedAt && activeSite.pageCount > 0), href: activeSite ? `/app/sites/${activeSite.id}` : "#properties", label: activeSite ? "Open site" : "Choose site", icon: ShieldCheck },
+    { title: "Map Google Analytics 4", detail: "Add landing-page sessions and outcomes as post-click context.", done: mappedGa4, href: "/app/traffic", label: mappedGa4 ? "Mapped" : "Map GA4", icon: BarChart3 },
+    { title: "Capture a website snapshot", detail: "Record titles, canonicals, headings, content and internal links.", done: hasCrawl, href: activeSite ? `/app/sites/${activeSite.id}` : "#properties", label: hasCrawl ? "Captured" : "Run snapshot", icon: ScanSearch },
+    { title: "Generate the first investigation", detail: "Turn the connected evidence into findings and reviewable tasks.", done: setupProgress.reportCount > 0, href: "/app/reports", label: setupProgress.reportCount ? "View report" : "Generate report", icon: FileText },
+  ];
+  const completedSteps = setupSteps.filter((step) => step.done).length;
 
   return (
     <AppShell active="/app/connect">
@@ -78,6 +91,37 @@ export default async function ConnectPage({ searchParams }: Props) {
             <p><strong>Only the fallback connection is active.</strong> It can see only properties explicitly shared with <span className="font-mono">{serviceAccount.email}</span>. Connect your normal Google account above to import all of its Search Console properties.</p>
           </div>
         ) : null}
+
+        <section className="data-panel overflow-hidden">
+          <div className="grid gap-5 border-b border-[#e7eaf0] px-5 py-5 md:grid-cols-[1fr_auto] md:items-end">
+            <div>
+              <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[#6177f2]">First investigation</p>
+              <h2 className="mt-1 text-lg font-semibold">Build a complete evidence chain</h2>
+              <p className="mt-1 max-w-2xl text-[11px] leading-5 text-[#667085]">Complete these steps in order. RankCues can analyze partial data, but change attribution is strongest when search, analytics and page snapshots overlap.</p>
+            </div>
+            <div className="min-w-[180px]">
+              <div className="flex items-center justify-between font-mono text-[9px] uppercase text-[#667085]"><span>Setup progress</span><span>{completedSteps}/5</span></div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#edf0f5]"><div className="h-full rounded-full bg-[#6177f2] transition-all" style={{ width: `${completedSteps * 20}%` }} /></div>
+            </div>
+          </div>
+          <div className="grid divide-y divide-[#edf0f5] lg:grid-cols-5 lg:divide-x lg:divide-y-0">
+            {setupSteps.map(({ title, detail, done, href, label, icon: Icon }, index) => (
+              <div key={title} className="flex min-w-0 flex-col px-4 py-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className={`flex size-8 items-center justify-center rounded-lg ${done ? "bg-[#eafbf6] text-[#087f6b]" : "bg-[#f2f4f7] text-[#667085]"}`}><Icon size={14} /></span>
+                  <span className={`flex items-center gap-1 font-mono text-[8px] uppercase ${done ? "text-[#087f6b]" : "text-[#98a2b3]"}`}>{done ? <Check size={11} /> : <Circle size={9} />} 0{index + 1}</span>
+                </div>
+                <h3 className="mt-4 text-[11px] font-semibold">{title}</h3>
+                <p className="mt-1 min-h-12 text-[9px] leading-4 text-[#8b94a5]">{detail}</p>
+                {index === 3 && !done && activeSite ? (
+                  <form action="/api/crawl/start" method="post" className="mt-3"><input type="hidden" name="siteId" value={activeSite.id} /><button className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#4659bc]">{label} <ArrowRight size={11} /></button></form>
+                ) : (
+                  <Link href={href} className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#4659bc]">{label} <ArrowRight size={11} /></Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
           <div className="data-panel overflow-hidden">
@@ -119,7 +163,7 @@ export default async function ConnectPage({ searchParams }: Props) {
           </div>
         </section>
 
-        <section className="data-panel overflow-hidden">
+        <section id="properties" className="data-panel scroll-mt-20 overflow-hidden">
           <div className="flex items-center justify-between border-b border-[#e7eaf0] px-5 py-4"><div><p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[#8b94a5]">Properties</p><h2 className="mt-1 text-base font-semibold">Imported Search Console sites</h2></div><span className="font-mono text-[9px] uppercase text-[#98a2b3]">{sites.length} live</span></div>
           {sites.length ? (
             <div className="overflow-x-auto"><div className="min-w-[820px]">

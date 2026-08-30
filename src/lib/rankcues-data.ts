@@ -7,6 +7,7 @@ import {
   Globe2,
   Gauge,
   FileText,
+  FlaskConical,
   KeyRound,
   Link2,
   MailPlus,
@@ -24,6 +25,7 @@ export const marketingLinks = [
   { href: "/#product", label: "Product" },
   { href: "/#how-it-works", label: "How it works" },
   { href: "/features/automated-seo-reports", label: "Weekly reports" },
+  { href: "/resources", label: "Resources" },
   { href: "/pricing", label: "Pricing" },
 ];
 
@@ -36,6 +38,7 @@ export const appLinks = [
   { href: "/app/backlinks", label: "Backlinks", icon: Link2 },
   { href: "/app/link-campaigns", label: "Link campaigns", icon: Send },
   { href: "/app/reports", label: "AI reports", icon: FileText },
+  { href: "/app/investigations", label: "Investigations", icon: FlaskConical },
   { href: "/app/tasks", label: "Tasks", icon: ListTodo },
   { href: "/app/automations", label: "Automations", icon: Workflow },
   { href: "/app/settings", label: "Settings", icon: Settings },
