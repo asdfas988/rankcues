@@ -2,352 +2,329 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowUpRight,
   BarChart3,
   Check,
-  Clock,
   FileText,
-  Gauge,
-  History,
-  Link2,
-  SearchCheck,
+  Globe2,
+  Search,
   ShieldCheck,
-  Sparkles,
+  Activity,
+  Layers3,
+  MousePointer2,
 } from "lucide-react";
-import { BrandMark, MarketingHeader } from "@/components/rankcues-ui";
+import {
+  PublicHeader,
+  PublicFooter,
+  PublicFaq,
+} from "@/components/marketing-site";
+import { ReportPreview } from "@/components/report-preview";
+import s from "@/components/marketing.module.css";
 
 export const metadata: Metadata = {
-  title: "SEO Reporting Software for Agencies | RankCues",
+  title: { absolute: "SEO Reporting Software for Agencies | RankCues" },
   description:
-    "RankCues connects GSC, GA4 and website changes to produce evidence-backed SEO investigations and reviewable weekly client reports.",
+    "SEO reporting for consultants and small agencies. Connect Search Console, investigate changes and turn the evidence into clear next steps. Explore the interactive demo.",
+  alternates: { canonical: "/" },
 };
 
-const evidenceLayers = [
-  {
-    icon: BarChart3,
-    number: "01",
-    title: "Performance signals",
-    body: "Find material movement across pages, queries, countries, devices and conversions without combing through every property.",
-    detail: "GSC · GA4 · scheduled baselines",
-  },
-  {
-    icon: History,
-    number: "02",
-    title: "Change context",
-    body: "Keep a durable record of titles, content, links, canonicals, deployments and human annotations beside the affected URLs.",
-    detail: "Crawler · CMS · deployment events",
-  },
-  {
-    icon: SearchCheck,
-    number: "03",
-    title: "Evidence-backed action",
-    body: "Separate observed facts from correlations and hypotheses, then turn the investigation into a reviewable client brief.",
-    detail: "Confidence · sources · next checks",
-  },
-];
-
-const workflow = [
-  ["Connect", "Add GSC, GA4 and one verified site with read-only access."],
-  ["Observe", "RankCues records the baseline and watches meaningful page changes."],
-  ["Investigate", "Signals are joined to events, affected entities and external context."],
-  ["Review", "Your team approves the evidence and edits the client-facing narrative."],
-  ["Measure", "Completed work receives an explicit follow-up window and recorded outcome."],
-];
-
-const reportFindings = [
-  {
-    label: "Detected",
-    color: "#059669",
-    title: "12 titles and 4 hero sections changed",
-    meta: "Crawler snapshot · Tuesday 14:12 UTC",
-  },
-  {
-    label: "Correlated",
-    color: "#d97706",
-    title: "The affected URLs account for 81% of this week’s click loss",
-    meta: "GSC page/query join · 82% confidence",
-  },
-  {
-    label: "Hypothesis",
-    color: "#4f46e5",
-    title: "New copy may have shifted away from local-service intent",
-    meta: "Validate against a fresh mobile SERP capture",
-  },
-];
+const questions = [
+  [
+    "Who is RankCues built for?",
+    "Independent SEO consultants and small SEO teams managing multiple client websites. It brings search performance, page changes and reviewable recommendations into one workspace.",
+  ],
+  [
+    "What do I need for my first report?",
+    "An invited RankCues account and access to a verified Google Search Console property. Sign in with your approved Google account, open a website, sync its search data and generate your first report. GA4 and page snapshots add optional context.",
+  ],
+  [
+    "What access does Google connection give you?",
+    "Google access is read-only. Signing in imports the Search Console properties visible to your Google account. Connecting Google does not grant website editing access; execution integrations and task review are separate.",
+  ],
+  [
+    "How should I use the AI findings?",
+    "Treat generated findings as a draft for your review. RankCues distinguishes observations, correlations and hypotheses. A page change near a traffic drop does not prove causation. Check the underlying evidence before sharing conclusions.",
+  ],
+  [
+    "Can I try it without connecting my account?",
+    "Yes. The interactive sample on this page is open to everyone and uses fictional data. Connecting your own websites currently requires a private-beta invitation. Public self-serve registration is not available yet.",
+  ],
+] as const;
 
 export default function Home() {
   return (
-    <main className="overflow-hidden bg-[#fafbfc] text-[#111318]">
-      {/* ── Hero ─────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-[#0f1223]/8">
-        <div className="dot-grid absolute inset-0" />
-        <div className="absolute left-1/2 top-[-340px] size-[760px] -translate-x-1/2 rounded-full bg-[#4f46e5]/[0.07] blur-[130px]" />
-        <div className="absolute right-[-10%] top-[30%] size-[420px] rounded-full bg-[#4f46e5]/[0.05] blur-[110px]" />
-        <MarketingHeader variant="light" />
-
-        <div className="relative mx-auto max-w-[1200px] px-5 pb-16 pt-16 text-center sm:px-8 lg:pt-24">
-          <div className="reveal chip mx-auto">
-            <Sparkles size={13} className="animate-pulse-soft" /> SEO reporting software for agencies
+    <div className={s.page} lang="en">
+      <a href="#main-content" className={s.skip}>
+        Skip to content
+      </a>
+      <PublicHeader />
+      <main id="main-content">
+        <section className={s.hero} id="product">
+          <div className={s.heroGrid} aria-hidden="true" />
+          <div className={s.heroIntro}>
+            <p className={s.pill}>
+              <span /> SEO REPORTING FOR CONSULTANTS & SMALL AGENCIES
+            </p>
+            <h1>
+              Your SEO data.
+              <br />
+              <span>Your next best move.</span>
+            </h1>
+            <p className={s.lead}>
+              Connect Search Console. Find what needs a closer look.
+              <br className={s.desktopBreak} /> Turn search data into a clear
+              plan for every client.
+            </p>
+            <div className={s.actions}>
+              <Link href="#sample-report" className={s.button}>
+                Explore the live demo <ArrowRight size={17} />
+              </Link>
+              <Link
+                href="/login?returnTo=%2Fapp%2Fconnect"
+                className={s.secondary}
+              >
+                Connect your first site <ArrowUpRight size={17} />
+              </Link>
+            </div>
+            <p className={s.heroNote}>
+              <Check size={14} /> No account needed for the demo <span>·</span>{" "}
+              Site connection is invite-only
+            </p>
           </div>
-          <h1 className="reveal reveal-delay-1 mx-auto mt-7 max-w-[900px] text-[clamp(2.9rem,6.2vw,5.4rem)] font-semibold leading-[1.02] tracking-[-0.055em]">
-            Know <span className="text-[#4f46e5]">why</span> organic performance changed.
-          </h1>
-          <p className="reveal reveal-delay-2 mx-auto mt-6 max-w-[640px] text-base leading-7 text-[#5b6272] sm:text-lg sm:leading-8">
-            RankCues connects Search Console, Analytics and website changes so
-            your team can explain what moved, show the evidence, and decide
-            what happens next—before the client asks.
-          </p>
-          <div className="reveal reveal-delay-3 mt-9 flex flex-wrap justify-center gap-3">
-            <Link href="/login" className="btn-primary">
-              Open private beta <ArrowRight size={16} />
-            </Link>
-            <Link href="#how-it-works" className="btn-secondary">
-              See the workflow
-            </Link>
-          </div>
-          <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[12px] text-[#8a90a0]">
-            <span className="inline-flex items-center gap-2">
-              <ShieldCheck size={14} className="text-[#4f46e5]" /> Read-only Google access
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <Check size={14} className="text-[#4f46e5]" /> Human review before delivery
-            </span>
-          </div>
-        </div>
-
-        {/* Product preview */}
-        <div className="relative mx-auto max-w-[1080px] px-5 pb-24 sm:px-8">
-          <div className="reveal reveal-delay-2 relative overflow-hidden rounded-2xl border border-[#e6e8ef] bg-white shadow-[0_2px_6px_rgba(15,18,35,0.05),0_28px_90px_rgba(15,18,35,0.09)]">
-            <span className="absolute inset-x-0 top-0 z-10 h-[2px] bg-gradient-to-r from-transparent via-[#4f46e5] to-transparent" />
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#eef0f4] px-5 py-4">
-              <div>
-                <p className="text-xs font-semibold">Northstar Dental</p>
-                <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#8a90a0]">
-                  Illustrative workflow · INV-042
-                </p>
-              </div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#fecaca] bg-[#fef2f2] px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[#dc2626]">
-                <span className="size-1.5 animate-pulse-soft rounded-full bg-[#dc2626]" /> High impact
+          <div className={`${s.container} ${s.showcase}`}>
+            <div className={s.showcaseLabel}>
+              <span>
+                <MousePointer2 size={14} /> A little less guesswork. Try the
+                workflow below.
               </span>
+              <span>INTERACTIVE PRODUCT PREVIEW</span>
             </div>
-
-            <div className="grid gap-0 xl:grid-cols-[0.9fr_1.1fr]">
-              <div className="border-b border-[#eef0f4] p-5 xl:border-b-0 xl:border-r">
-                <p className="font-mono text-[9px] uppercase tracking-[0.13em] text-[#8a90a0]">
-                  Organic clicks · 7 days
-                </p>
-                <div className="mt-3 flex items-end justify-between">
-                  <div>
-                    <p className="text-5xl font-semibold tracking-[-0.05em]">8,421</p>
-                    <p className="mt-1 text-xs font-medium text-[#dc2626]">−18.4% vs previous period</p>
-                  </div>
-                  <span className="flex size-11 items-center justify-center rounded-xl bg-[#eef2ff] text-[#4f46e5]">
-                    <BarChart3 size={22} />
-                  </span>
-                </div>
-                <svg viewBox="0 0 360 116" className="mt-7 h-28 w-full" aria-label="Organic clicks trend">
-                  <path d="M4 30 C42 26, 54 42, 88 38 S138 22, 168 31 S219 46, 244 43 S298 81, 356 92" fill="none" stroke="#4f46e5" strokeWidth="2" />
-                  <path d="M4 30 C42 26, 54 42, 88 38 S138 22, 168 31 S219 46, 244 43 S298 81, 356 92 L356 116 L4 116 Z" fill="url(#trendFill)" />
-                  <defs>
-                    <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0" stopColor="#4f46e5" stopOpacity=".18" />
-                      <stop offset="1" stopColor="#4f46e5" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div className="mt-3 grid grid-cols-3 gap-2 border-t border-[#eef0f4] pt-3">
-                  {[["Impressions", "−9.7%"], ["Position", "−2.4"], ["Leads", "−11"]].map(([label, value]) => (
-                    <div key={label}>
-                      <p className="text-[9px] text-[#8a90a0]">{label}</p>
-                      <p className="mt-1 font-mono text-xs text-[#3f4653]">{value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-5">
-                <div className="flex items-center justify-between">
-                  <p className="font-mono text-[9px] uppercase tracking-[0.13em] text-[#8a90a0]">
-                    Evidence rail
-                  </p>
-                  <span className="font-mono text-[9px] font-semibold text-[#4f46e5]">82% confidence</span>
-                </div>
-                <div className="mt-5 grid gap-5">
-                  {reportFindings.map((finding) => (
-                    <div key={finding.label} className="evidence-rail grid grid-cols-[18px_1fr] gap-3">
-                      <span
-                        className="relative z-10 mt-1 size-[9px] rounded-full border-2 border-white"
-                        style={{ backgroundColor: finding.color, boxShadow: `0 0 0 1px ${finding.color}` }}
-                      />
-                      <div>
-                        <p className="font-mono text-[9px] uppercase tracking-[0.1em]" style={{ color: finding.color }}>
-                          {finding.label}
-                        </p>
-                        <p className="mt-1 text-[13px] font-medium leading-5 text-[#2b303b]">{finding.title}</p>
-                        <p className="mt-1 text-[10px] leading-4 text-[#8a90a0]">{finding.meta}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 rounded-xl border border-[#dfe3fb] bg-[#eef2ff] p-3.5">
-                  <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#4f46e5]">Next decision</p>
-                  <p className="mt-2 text-xs leading-5 text-[#3f4653]">
-                    Compare the previous title against current local intent before restoring or testing new copy.
-                  </p>
-                </div>
-              </div>
-            </div>
+            <ReportPreview />
           </div>
-        </div>
-      </section>
-
-      {/* ── Evidence layers ──────────────────── */}
-      <section id="product" className="px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
-        <div className="mx-auto max-w-[1200px]">
-          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-            <div>
-              <p className="section-kicker">From reporting to reasoning</p>
-              <h2 className="section-title">Charts are easy. Context is the work.</h2>
-            </div>
-            <p className="max-w-2xl text-base leading-8 text-[#5b6272] lg:justify-self-end">
-              Most reporting software assembles metrics. RankCues reconstructs
-              the event: which segment moved, what changed around it, what the
-              evidence supports, and what still needs checking.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-4 lg:grid-cols-3">
-            {evidenceLayers.map((layer) => {
-              const Icon = layer.icon;
-              return (
-                <article key={layer.number} className="premium-card group relative overflow-hidden p-6 transition-transform duration-500 hover:-translate-y-1.5 sm:p-7">
-                  <div className="absolute right-5 top-4 text-6xl font-semibold text-[#111318]/[0.05] transition-colors duration-500 group-hover:text-[#4f46e5]/[0.1]">{layer.number}</div>
-                  <span className="flex size-11 items-center justify-center rounded-xl bg-[#eef2ff] text-[#4f46e5] transition-colors duration-300 group-hover:bg-[#4f46e5] group-hover:text-white">
-                    <Icon size={20} />
-                  </span>
-                  <h3 className="mt-7 text-2xl font-semibold tracking-[-0.035em]">{layer.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-[#5b6272]">{layer.body}</p>
-                  <p className="mt-7 border-t border-[#0f1223]/8 pt-4 font-mono text-[9px] uppercase tracking-[0.11em] text-[#8a90a0]">{layer.detail}</p>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Workflow ─────────────────────────── */}
-      <section id="how-it-works" className="border-y border-[#0f1223]/8 bg-white px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
-        <div className="mx-auto grid max-w-[1200px] gap-12 lg:grid-cols-[0.72fr_1.28fr]">
+        </section>
+        <section
+          className={`${s.container} ${s.sources}`}
+          aria-label="Supported data sources"
+        >
+          <p>
+            A clearer view starts with
+            <br />
+            <strong>the data you already trust.</strong>
+          </p>
           <div>
-            <p className="section-kicker">Weekly operating rhythm</p>
-            <h2 className="section-title">A brief your strategist can defend.</h2>
-            <p className="mt-6 max-w-lg text-sm leading-7 text-[#5b6272]">
-              Every narrative is traceable to source data. Your team keeps the
-              final say before anything reaches a client.
+            <Search size={25} />
+            <span>
+              Search Console<small>Your starting point</small>
+            </span>
+          </div>
+          <div>
+            <BarChart3 size={25} />
+            <span>
+              Google Analytics 4<small>Optional conversion context</small>
+            </span>
+          </div>
+          <div>
+            <Globe2 size={25} />
+            <span>
+              Page snapshots<small>Optional change history</small>
+            </span>
+          </div>
+        </section>
+        <section className={`${s.container} ${s.section}`}>
+          <div className={s.sectionHeading}>
+            <div>
+              <p className={s.kicker}>FROM SIGNAL TO NEXT STEP</p>
+              <h2>
+                More clarity.
+                <br />
+                Across every client site.
+              </h2>
+            </div>
+            <p>
+              The numbers are a starting point.
+              <br />
+              Keep the evidence, the explanation and
+              <br className={s.desktopBreak} /> the next action together.
             </p>
-            <Link href="/features/automated-seo-reports" className="group mt-8 inline-flex items-center gap-2 text-sm font-semibold text-[#4f46e5]">
-              Explore weekly reports <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+          </div>
+          <div className={s.benefits}>
+            <article>
+              <div className={s.iconTile}>
+                <Activity size={23} />
+              </div>
+              <h3>
+                Spot the change.
+                <br />
+                Find your starting point.
+              </h3>
+              <p>
+                Move from your website portfolio to the pages and queries behind
+                a change in search performance.
+              </p>
+              <div className={s.signalVisual} aria-hidden="true">
+                <span>/services</span>
+                <div>
+                  <i style={{ width: "82%" }} />
+                </div>
+                <span>−18.4%</span>
+                <span>/locations</span>
+                <div>
+                  <i style={{ width: "55%" }} />
+                </div>
+                <span>−7.2%</span>
+                <span>/blog</span>
+                <div>
+                  <i style={{ width: "32%" }} />
+                </div>
+                <span>−2.1%</span>
+              </div>
+              <Link href="/resources/seo-anomaly-detection">
+                Explore SEO signals <ArrowUpRight size={16} />
+              </Link>
+            </article>
+            <article>
+              <div className={s.iconTile}>
+                <Layers3 size={23} />
+              </div>
+              <h3>
+                Check the evidence.
+                <br />
+                Keep the context.
+              </h3>
+              <p>
+                Review search movement alongside page updates. Separate what
+                happened from what still needs checking.
+              </p>
+              <div className={s.evidenceVisual}>
+                <span>
+                  <i /> Search Console <b>Observed</b>
+                </span>
+                <span>
+                  <i /> Title update <b>Correlated</b>
+                </span>
+                <span>
+                  <i /> Search intent <b>To verify</b>
+                </span>
+              </div>
+              <Link href="/resources/seo-change-tracking">
+                Follow the evidence <ArrowUpRight size={16} />
+              </Link>
+            </article>
+            <article>
+              <div className={s.iconTile}>
+                <FileText size={23} />
+              </div>
+              <h3>
+                Make the next call
+                <br />a clearer conversation.
+              </h3>
+              <p>
+                Generate a weekly brief with findings and follow-up tasks.
+                Review the story before using it with your client.
+              </p>
+              <div className={s.briefVisual}>
+                <span>YOUR WEEKLY BRIEF</span>
+                <strong>What changed → What’s next</strong>
+                <i />
+                <i />
+                <i />
+              </div>
+              <Link href="/features/automated-seo-reports">
+                See how reporting works <ArrowUpRight size={16} />
+              </Link>
+            </article>
+          </div>
+          <p className={s.visualNote}>
+            Illustrative examples. No real client results are shown.
+          </p>
+        </section>
+        <section className={s.workflow} id="how-it-works">
+          <div className={s.container}>
+            <div className={s.sectionHeading}>
+              <div>
+                <p className={s.kicker}>A SIMPLE FIRST STEP</p>
+                <h2>
+                  One website.
+                  <br />
+                  Your first clear next move.
+                </h2>
+              </div>
+              <p>
+                Start with Search Console.
+                <br />
+                Add more context when you need it.
+              </p>
+            </div>
+            <ol className={s.steps}>
+              {[
+                [
+                  "01",
+                  "Connect your Google account",
+                  "Use your invited account with access to Search Console. Your available properties appear in the workspace.",
+                ],
+                [
+                  "02",
+                  "Open a site. Sync the data.",
+                  "Choose a property and bring in its search performance. GA4 and page snapshots can come later.",
+                ],
+                [
+                  "03",
+                  "Generate. Review. Take action.",
+                  "Read your report, check the evidence and decide what to do next. Keep the follow-up attached to the finding.",
+                ],
+              ].map(([n, t, p]) => (
+                <li key={n}>
+                  <span>{n}</span>
+                  <h3>{t}</h3>
+                  <p>{p}</p>
+                </li>
+              ))}
+            </ol>
+            <div className={s.workflowBottom}>
+              <span>
+                <ShieldCheck size={17} /> Read-only Google access. Your team
+                reviews the findings.
+              </span>
+              <Link
+                href="/login?returnTo=%2Fapp%2Fconnect"
+                className={s.button}
+              >
+                Set up your first site <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        </section>
+        <section className={`${s.container} ${s.section} ${s.faq}`}>
+          <div>
+            <p className={s.kicker}>GOOD QUESTIONS</p>
+            <h2>
+              Before your
+              <br />
+              first connection.
+            </h2>
+            <p>
+              A few things to know about
+              <br />
+              the product and private beta.
+            </p>
+            <Link href="/pricing" className={s.textLink}>
+              About beta access <ArrowUpRight size={16} />
             </Link>
           </div>
-
-          <div className="overflow-hidden rounded-2xl border border-[#e7e9ef] bg-white shadow-[0_2px_6px_rgba(15,18,35,0.04),0_20px_60px_rgba(15,18,35,0.06)]">
-            {workflow.map(([title, body], index) => (
-              <div key={title} className="group grid gap-2 border-b border-[#eef0f4] px-5 py-5 transition-colors duration-300 last:border-b-0 hover:bg-[#f7f8fa] sm:grid-cols-[56px_120px_1fr] sm:items-center sm:gap-3">
-                <span className="font-mono text-[10px] font-semibold text-[#4f46e5] transition-transform duration-300 group-hover:translate-x-0.5">0{index + 1}</span>
-                <span className="text-sm font-semibold">{title}</span>
-                <span className="text-xs leading-6 text-[#5b6272]">{body}</span>
-              </div>
-            ))}
+          <PublicFaq questions={questions} />
+        </section>
+        <section className={`${s.container} ${s.finalCta}`}>
+          <div>
+            <p className={s.kicker}>LESS GUESSWORK. A CLEARER NEXT STEP.</p>
+            <h2>Make sense of the movement.</h2>
+            <p>Explore a sample. See how a signal becomes a plan.</p>
           </div>
-        </div>
-      </section>
-
-      {/* ── Report preview + trust ───────────── */}
-      <section className="px-5 py-20 sm:px-8 lg:px-12 lg:py-24">
-        <div className="mx-auto grid max-w-[1200px] gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="relative overflow-hidden rounded-2xl bg-[#0f1216] p-6 text-white shadow-[0_24px_80px_rgba(15,18,35,0.25)] sm:p-8">
-            <span className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#4f46e5] to-transparent" />
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-[#a5b4fc]">Friday client brief</p>
-                <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">Northstar Dental · Week 29</h3>
-              </div>
-              <FileText size={28} className="text-[#a5b4fc]" />
-            </div>
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              {[["Material findings", "3"], ["Decisions required", "2"], ["Evidence sources", "8"]].map(([label, value]) => (
-                <div key={label} className="dark-card p-4">
-                  <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-white/35">{label}</p>
-                  <p className="mt-3 text-4xl font-semibold tracking-[-0.04em]">{value}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 rounded-xl border border-white/9 bg-white/[0.04] p-5">
-              <p className="text-sm font-semibold">Executive summary</p>
-              <p className="mt-3 text-sm leading-7 text-white/52">
-                Organic acquisition weakened on local-service pages after a
-                coordinated copy change. Indexing is healthy; the next decision
-                is to validate intent before reverting or running a controlled test.
-              </p>
-            </div>
-          </div>
-
-          <div className="premium-card flex flex-col justify-between p-7 sm:p-9">
-            <div>
-              <p className="section-kicker">Trust by construction</p>
-              <h3 className="mt-4 text-4xl font-semibold leading-[1.05] tracking-[-0.045em]">AI explains. Evidence decides.</h3>
-              <p className="mt-5 text-sm leading-7 text-[#5b6272]">
-                Platform-managed inference keeps provider configuration internal while
-                source citations, confidence labels and human approval keep the
-                output accountable.
-              </p>
-            </div>
-            <div className="mt-10 grid gap-3">
-              {[
-                [ShieldCheck, "Provider credentials stay platform-side"],
-                [Link2, "Every finding links to its evidence"],
-                [Gauge, "Detected, correlated and hypothesis states"],
-                [Clock, "Human review before any delivery"],
-              ].map(([Icon, text]) => (
-                <div key={String(text)} className="flex items-center gap-3 border-t border-[#0f1223]/8 pt-3 text-sm font-medium">
-                  <Icon size={17} className="text-[#4f46e5]" /> {String(text)}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Final CTA ────────────────────────── */}
-      <section className="relative overflow-hidden bg-[#0e1013] px-5 py-24 text-center text-white sm:px-8 lg:px-12">
-        <div className="absolute left-1/2 top-1/2 size-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#4f46e5]/[0.16] blur-[140px]" />
-        <div className="relative mx-auto max-w-4xl">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-[#a5b4fc]">The next client question</p>
-          <h2 className="mt-5 text-[clamp(2.6rem,6vw,5.4rem)] font-semibold leading-[1.02] tracking-[-0.055em]">
-            Answer it with evidence.
-          </h2>
-          <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-white/50">
-            Start with one Search Console property and see which changes are already hiding behind the chart.
-          </p>
-          <Link href="/login" className="mt-9 inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-[#111318] shadow-[0_2px_12px_rgba(255,255,255,0.2),0_12px_40px_rgba(79,70,229,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(255,255,255,0.28),0_16px_56px_rgba(79,70,229,0.4)] active:translate-y-0">
-            Open private beta <ArrowRight size={16} />
+          <Link href="#sample-report" className={s.button}>
+            Take a look inside <ArrowRight size={17} />
           </Link>
-        </div>
-      </section>
-
-      {/* ── Footer ───────────────────────────── */}
-      <footer className="border-t border-[#0f1223]/8 px-5 py-7 sm:px-8 lg:px-12">
-        <div className="mx-auto flex max-w-[1200px] flex-col justify-between gap-5 sm:flex-row sm:items-center">
-          <BrandMark />
-          <p className="text-[11px] text-[#8a90a0]">Evidence-backed SEO reporting for teams managing client trust.</p>
-          <div className="flex flex-wrap gap-5 text-[11px] text-[#5b6272]">
-            <Link href="/pricing" className="transition-colors hover:text-[#111318]">Pricing</Link>
-            <Link href="/about" className="transition-colors hover:text-[#111318]">About</Link>
-            <Link href="/privacy" className="transition-colors hover:text-[#111318]">Privacy</Link>
-            <Link href="/terms" className="transition-colors hover:text-[#111318]">Terms</Link>
-            <Link href="/contact" className="transition-colors hover:text-[#111318]">Contact</Link>
-          </div>
-        </div>
-      </footer>
-    </main>
+        </section>
+      </main>
+      <PublicFooter />
+    </div>
   );
 }

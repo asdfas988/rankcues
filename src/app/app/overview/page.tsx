@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, DatabaseZap, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
-import { ActionLink, AppShell, MetricCard, PageHeader } from "@/components/rankcues-ui";
-import { getPersistencePublicStatus, getPortfolioOverview } from "@/lib/data-store";
+import { ArrowRight, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
+import { AppShell, MetricCard, PageHeader } from "@/components/rankcues-ui";
+import { getPersistencePublicStatus, getPortfolioOverview, getWorkspaceSetupProgress } from "@/lib/data-store";
+import { WorkspaceOnboarding, WorkspaceNextStep } from "@/components/workspace-onboarding";
 import { getLocale, pick } from "@/lib/i18n";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -64,8 +65,13 @@ export default async function OverviewPage() {
   const locale = await getLocale();
   const persistence = getPersistencePublicStatus();
   let portfolio: Awaited<ReturnType<typeof getPortfolioOverview>> = null;
+  let dataUnavailable = !persistence.ready;
+  let reportCount: number | null = null;
   if (persistence.ready) {
-    try { portfolio = await getPortfolioOverview(); } catch { portfolio = null; }
+    const [overviewResult, setupResult] = await Promise.allSettled([getPortfolioOverview(), getWorkspaceSetupProgress()]);
+    if (overviewResult.status === "fulfilled") { portfolio = overviewResult.value; dataUnavailable = portfolio === null; }
+    else dataUnavailable = true;
+    if (setupResult.status === "fulfilled") reportCount = setupResult.value.reportCount;
   }
   const sites = portfolio?.sites ?? [];
   const events = portfolio?.events ?? [];
@@ -79,31 +85,23 @@ export default async function OverviewPage() {
     <AppShell active="/app/overview">
       <PageHeader
         kicker={pick(locale, "Overview", "总览", "Resumen")}
-        title={sites.length ? pick(locale, "Your organic search portfolio, without the noise.", "看清你的自然搜索组合，不被噪音干扰。", "Tu portafolio orgánico, sin ruido.") : pick(locale, "Connect real search data to begin.", "连接真实搜索数据后开始。", "Conecta datos reales para empezar.")}
-        body={sites.length ? pick(locale, "Every number below comes from a connected Search Console property. No sample sites or generated metrics are mixed in.", "下方所有数字均来自已连接的 Search Console，不混入演示网站或生成数据。", "Todos los datos proceden de Search Console, sin sitios de ejemplo ni métricas generadas.") : pick(locale, "RankCues is ready, but no verified Google account properties have been imported into this workspace.", "RankCues 已就绪，但当前工作区还没有导入已验证的 Google 网站。", "RankCues está listo, pero aún no se han importado propiedades verificadas.")}
+        title={dataUnavailable ? pick(locale, "Workspace overview", "工作区总览", "Resumen del espacio") : sites.length ? pick(locale, "Your sites. A clearer next move.", "看清网站变化，安排下一步。", "Tus sitios. Un siguiente paso claro.") : pick(locale, "Welcome. Let’s start with one site.", "欢迎，从连接一个网站开始。", "Bienvenido. Empecemos con un sitio.")}
+        body={dataUnavailable ? pick(locale, "We couldn’t load your latest data. Please try again shortly.", "未能加载最新数据，请稍后重试。", "No pudimos cargar los datos. Inténtalo de nuevo.") : sites.length ? pick(locale, "Review search performance, open a site for detail, or continue to your reports and next actions.", "查看搜索表现、打开网站了解详情，或继续处理报告和任务。", "Revisa el rendimiento, abre un sitio o continúa con tus informes y acciones.") : pick(locale, "Your first report starts with Search Console. We’ll guide you through connecting and syncing your data.", "第一份报告从 Search Console 开始，下面会引导你连接网站并同步数据。", "Tu primer informe empieza con Search Console. Te guiaremos para conectar y sincronizar tus datos.")}
         action={sites.length ? (
           <form action="/api/integrations/gsc/sync-all" method="post">
             <button className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#111827] px-3.5 text-[11px] font-semibold text-white"><RefreshCw size={13} /> {pick(locale, "Sync all sites", "同步全部网站", "Sincronizar todos")}</button>
           </form>
-        ) : <ActionLink href="/api/auth/google">{pick(locale, "Connect Google", "连接 Google", "Conectar Google")} <ArrowRight size={13} /></ActionLink>}
+        ) : undefined}
       />
 
       <div className="grid gap-4 px-4 pb-8 sm:px-6 lg:px-8">
-        {!persistence.ready ? (
-          <div className="rounded-xl border border-[#f2c94c]/35 bg-[#fff8db] px-4 py-3 text-xs text-[#7a5a05]">Persistent storage is not configured. Live data cannot be displayed.</div>
-        ) : null}
-
-        {!sites.length ? (
-          <section className="data-panel grid min-h-[420px] place-items-center px-6 py-16 text-center">
-            <div className="max-w-md">
-              <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-[#eef1ff] text-[#5268d9]"><DatabaseZap size={22} /></span>
-              <h2 className="mt-5 text-xl font-semibold tracking-[-0.03em]">No live properties yet</h2>
-              <p className="mt-2 text-[12px] leading-6 text-[#667085]">Connect the Google account that owns your Search Console properties. RankCues will import every property returned by that account.</p>
-              <Link href="/api/auth/google" className="mt-5 inline-flex h-10 items-center gap-2 rounded-lg bg-[#6177f2] px-4 text-xs font-semibold text-white">Connect Google account <ArrowRight size={14} /></Link>
-            </div>
-          </section>
+        {dataUnavailable ? (
+          <section className="data-panel p-6" role="alert"><h2 className="text-lg font-semibold">{pick(locale, "Your workspace data is temporarily unavailable.", "暂时无法读取工作区数据。", "Los datos del espacio no están disponibles.")}</h2><p className="mt-2 text-sm text-[#667085]">{pick(locale, "Try reloading this page. Your existing connections have not been removed.", "请稍后重新加载页面，已有连接没有被移除。", "Intenta recargar la página. Tus conexiones no se han eliminado.")}</p><form action="/app/overview" method="get" className="mt-4"><button className="rc-text-link">{pick(locale, "Reload overview", "重新加载总览", "Recargar resumen")} <RefreshCw size={14} /></button></form></section>
+        ) : !sites.length ? (
+          <WorkspaceOnboarding locale={locale} />
         ) : (
           <>
+            {reportCount !== null ? <WorkspaceNextStep locale={locale} reportCount={reportCount} syncedSiteId={sites.find((site) => site.lastSyncedAt && site.pageCount > 0)?.id} /> : null}
             <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard label="Connected properties" value={String(sites.length)} detail="Verified Search Console access" />
               <MetricCard label="Clicks · latest 7 days" value={compact(currentClicks)} detail={`${change >= 0 ? "+" : ""}${change.toFixed(1)}% vs previous 7 days`} />

@@ -367,6 +367,7 @@ export const navLabels = {
   Backlinks: ["Backlinks", "外链", "Enlaces"],
   "Link campaigns": ["Link campaigns", "外链活动", "Campañas de enlaces"],
   "AI reports": ["AI reports", "AI 报告", "Informes de IA"],
+  Investigations: ["Investigations", "问题分析", "Investigaciones"],
   Tasks: ["Tasks", "任务", "Tareas"],
   Automations: ["Automations", "自动化", "Automatización"],
   Settings: ["Settings", "设置", "Ajustes"],

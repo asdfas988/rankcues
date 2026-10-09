@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, Check, Circle, CircleAlert, Database, FileText, RefreshCw, ScanSearch, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowRight, BarChart3, Check, CircleAlert, Database, FileText, RefreshCw, ScanSearch, ShieldCheck, UserRound } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/rankcues-ui";
 import { getPersistencePublicStatus, getWorkspaceSetupProgress, listGa4Properties, listGoogleConnections, listGscSites } from "@/lib/data-store";
 import { getGooglePublicStatus } from "@/lib/google-search-console";
@@ -56,15 +56,14 @@ export default async function ConnectPage({ searchParams }: Props) {
   const accountConnections = connections.filter((item) => !isGoogleServiceAccountSubject(item.googleSubject));
   const serviceConnections = connections.filter((item) => isGoogleServiceAccountSubject(item.googleSubject));
   const onlyServiceAccount = serviceConnections.length > 0 && accountConnections.length === 0;
-  const activeSite = sites.find((site) => site.active && site.permissionLevel !== "siteUnverifiedUser");
+  const eligibleSites = sites.filter((site) => site.active && site.permissionLevel !== "siteUnverifiedUser");
+  const activeSite = eligibleSites.find((site) => site.lastSyncedAt && site.pageCount > 0) || eligibleSites[0];
   const mappedGa4 = ga4Properties.some((property) => Boolean(property.siteId));
   const hasCrawl = setupProgress.crawledSiteIds.length > 0;
   const setupSteps = [
-    { title: "Connect Search Console", detail: "Import the verified properties visible to your Google account.", done: accountConnections.length > 0, href: "/api/auth/google", label: accountConnections.length ? "Connected" : "Connect Google", icon: UserRound },
-    { title: "Choose and sync a site", detail: "Select the property RankCues should investigate first.", done: Boolean(activeSite?.lastSyncedAt && activeSite.pageCount > 0), href: activeSite ? `/app/sites/${activeSite.id}` : "#properties", label: activeSite ? "Open site" : "Choose site", icon: ShieldCheck },
-    { title: "Map Google Analytics 4", detail: "Add landing-page sessions and outcomes as post-click context.", done: mappedGa4, href: "/app/traffic", label: mappedGa4 ? "Mapped" : "Map GA4", icon: BarChart3 },
-    { title: "Capture a website snapshot", detail: "Record titles, canonicals, headings, content and internal links.", done: hasCrawl, href: activeSite ? `/app/sites/${activeSite.id}` : "#properties", label: hasCrawl ? "Captured" : "Run snapshot", icon: ScanSearch },
-    { title: "Generate the first investigation", detail: "Turn the connected evidence into findings and reviewable tasks.", done: setupProgress.reportCount > 0, href: "/app/reports", label: setupProgress.reportCount ? "View report" : "Generate report", icon: FileText },
+    { title: pick(locale, "Connect Search Console", "连接 Search Console", "Conectar Search Console"), detail: pick(locale, "Import the properties visible to your Google account.", "导入 Google 账号可见的网站。", "Importa las propiedades visibles de tu cuenta."), done: connections.length > 0, href: connections.length ? "#connection-details" : "/api/auth/google?returnTo=%2Fapp%2Fconnect", label: pick(locale, "Connect Google", "连接 Google", "Conectar Google"), icon: UserRound },
+    { title: pick(locale, "Sync one website", "同步一个网站", "Sincronizar un sitio"), detail: pick(locale, "Open a site and import its search performance.", "打开一个网站，同步它的搜索表现数据。", "Abre un sitio e importa su rendimiento."), done: Boolean(activeSite?.lastSyncedAt && activeSite.pageCount > 0), href: activeSite ? `/app/sites/${activeSite.id}` : "#properties", label: pick(locale, "Open site", "打开网站", "Abrir sitio"), icon: ShieldCheck },
+    { title: pick(locale, "Create your first report", "生成第一份报告", "Crear tu primer informe"), detail: pick(locale, "Review the findings and choose what to work on next.", "查看发现的问题，决定接下来要做什么。", "Revisa los hallazgos y elige el siguiente paso."), done: setupProgress.reportCount > 0, href: activeSite ? `/app/reports?site=${encodeURIComponent(activeSite.id)}` : "/app/reports", label: setupProgress.reportCount ? pick(locale, "View report", "查看报告", "Ver informe") : pick(locale, "Create report", "生成报告", "Crear informe"), icon: FileText },
   ];
   const completedSteps = setupSteps.filter((step) => step.done).length;
 
@@ -72,12 +71,12 @@ export default async function ConnectPage({ searchParams }: Props) {
     <AppShell active="/app/connect">
       <PageHeader
         kicker={pick(locale, "Sites", "网站", "Sitios")}
-        title={pick(locale, "Connect every property you operate.", "连接你运营的所有网站。", "Conecta todas las propiedades que gestionas.")}
-        body={pick(locale, "Google account OAuth imports the full Search Console property list available to that account. Service-account access is kept as a one-property fallback only.", "通过 Google OAuth 导入该账号可见的全部 Search Console 网站；服务账号仅作为单网站备用方式。", "Google OAuth importa todas las propiedades visibles de Search Console; la cuenta de servicio queda como respaldo.")}
+        title={pick(locale, "Start with one connected site.", "从连接一个网站开始。", "Empieza con un sitio conectado.")}
+        body={pick(locale, "Connect your Google account, open a site, and sync its search data. Then you can create your first report.", "连接 Google 账号，打开一个网站并同步搜索数据，就可以开始生成首份报告。", "Conecta Google, abre un sitio y sincroniza sus datos para crear tu primer informe.")}
         action={
           <div className="flex gap-2">
             {sites.length ? <form action="/api/integrations/gsc/sync-all" method="post"><button className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#dfe3eb] bg-white px-3.5 text-[11px] font-semibold text-[#344054]"><RefreshCw size={13} /> {pick(locale, "Sync all", "全部同步", "Sincronizar todo")}</button></form> : null}
-            <Link href="/api/auth/google" className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#6177f2] px-3.5 text-[11px] font-semibold text-white">{pick(locale, "Connect Google account", "连接 Google 账号", "Conectar cuenta de Google")} <ArrowRight size={13} /></Link>
+            <Link href="/api/auth/google?returnTo=%2Fapp%2Fconnect" className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#6177f2] px-3.5 text-[11px] font-semibold text-white">{pick(locale, "Connect Google account", "连接 Google 账号", "Conectar cuenta de Google")} <ArrowRight size={13} /></Link>
           </div>
         }
       />
@@ -92,38 +91,40 @@ export default async function ConnectPage({ searchParams }: Props) {
           </div>
         ) : null}
 
-        <section className="data-panel overflow-hidden">
-          <div className="grid gap-5 border-b border-[#e7eaf0] px-5 py-5 md:grid-cols-[1fr_auto] md:items-end">
-            <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[#6177f2]">First investigation</p>
-              <h2 className="mt-1 text-lg font-semibold">Build a complete evidence chain</h2>
-              <p className="mt-1 max-w-2xl text-[11px] leading-5 text-[#667085]">Complete these steps in order. RankCues can analyze partial data, but change attribution is strongest when search, analytics and page snapshots overlap.</p>
-            </div>
-            <div className="min-w-[180px]">
-              <div className="flex items-center justify-between font-mono text-[9px] uppercase text-[#667085]"><span>Setup progress</span><span>{completedSteps}/5</span></div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#edf0f5]"><div className="h-full rounded-full bg-[#6177f2] transition-all" style={{ width: `${completedSteps * 20}%` }} /></div>
-            </div>
-          </div>
-          <div className="grid divide-y divide-[#edf0f5] lg:grid-cols-5 lg:divide-x lg:divide-y-0">
-            {setupSteps.map(({ title, detail, done, href, label, icon: Icon }, index) => (
-              <div key={title} className="flex min-w-0 flex-col px-4 py-4">
-                <div className="flex items-center justify-between gap-3">
-                  <span className={`flex size-8 items-center justify-center rounded-lg ${done ? "bg-[#eafbf6] text-[#087f6b]" : "bg-[#f2f4f7] text-[#667085]"}`}><Icon size={14} /></span>
-                  <span className={`flex items-center gap-1 font-mono text-[8px] uppercase ${done ? "text-[#087f6b]" : "text-[#98a2b3]"}`}>{done ? <Check size={11} /> : <Circle size={9} />} 0{index + 1}</span>
-                </div>
-                <h3 className="mt-4 text-[11px] font-semibold">{title}</h3>
-                <p className="mt-1 min-h-12 text-[9px] leading-4 text-[#8b94a5]">{detail}</p>
-                {index === 3 && !done && activeSite ? (
-                  <form action="/api/crawl/start" method="post" className="mt-3"><input type="hidden" name="siteId" value={activeSite.id} /><button className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#4659bc]">{label} <ArrowRight size={11} /></button></form>
-                ) : (
-                  <Link href={href} className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#4659bc]">{label} <ArrowRight size={11} /></Link>
-                )}
-              </div>
-            ))}
-          </div>
+        <section className="setup-guide">
+          <div className="setup-guide-heading"><div><p className="eyebrow">{pick(locale, "YOUR FIRST REPORT", "第一份报告", "TU PRIMER INFORME")}</p><h2>{pick(locale, "Three steps to a useful first view.", "三步，开始了解网站表现。", "Tres pasos para empezar.")}</h2><p>{pick(locale, "Search Console is enough to begin. Add other data sources when you need more context.", "使用 Search Console 即可开始，其他数据来源可以按需添加。", "Search Console es suficiente para empezar. Añade más fuentes cuando las necesites.")}</p></div><span className="rounded-full border border-[#d7e0c8] px-3 py-2 text-xs text-[#5b734a]">{completedSteps} / 3 {pick(locale, "complete", "已完成", "completos")}</span></div>
+          <ol>{setupSteps.map(({ title, detail, done, href, label, icon: Icon }, index) => <li key={title}>
+            <span className="inline-flex items-center gap-2">{done ? <Check size={14} /> : <Icon size={14} />} 0{index + 1} {done ? pick(locale, "Complete", "已完成", "Completo") : ""}</span><h3>{title}</h3><p>{detail}</p>
+            {index > 0 && !setupSteps[index - 1].done && !done ? <p>{pick(locale, "Complete the previous step to continue.", "完成上一步后继续。", "Completa el paso anterior para continuar.")}</p> : <Link href={href} className="rc-text-link mt-4">{done ? pick(locale, "Review", "查看", "Revisar") : label}<ArrowRight size={13} /></Link>}
+          </li>)}</ol>
         </section>
+        <details className="data-panel px-5 py-4"><summary className="cursor-pointer text-sm font-semibold text-[#435a3a]">{pick(locale, "Optional: add more context to your reports", "可选：为报告补充更多信息", "Opcional: añade contexto a tus informes")}</summary><div className="mt-5 grid gap-5 md:grid-cols-2">
+          <div><div className="flex items-center gap-2 text-sm font-semibold"><BarChart3 size={16} /> Google Analytics 4 {mappedGa4 ? <Check size={14} /> : null}</div><p className="mt-2 text-xs leading-6 text-[#667085]">{pick(locale, "Map Analytics to add sessions and conversion context.", "关联 Analytics，为报告补充访问会话和转化数据。", "Añade sesiones y conversiones con Analytics.")}</p><Link href="/app/traffic" className="rc-text-link mt-3">{pick(locale, "Manage Analytics", "管理 Analytics", "Gestionar Analytics")}<ArrowRight size={13} /></Link></div>
+          <div><div className="flex items-center gap-2 text-sm font-semibold"><ScanSearch size={16} />{pick(locale, "Website snapshot", "网站快照", "Captura del sitio")} {hasCrawl ? <Check size={14} /> : null}</div><p className="mt-2 text-xs leading-6 text-[#667085]">{pick(locale, "Record page titles, headings and links to compare future changes.", "记录页面标题、内容标题和链接，便于之后对比变化。", "Registra títulos y enlaces para comparar cambios.")}</p>{activeSite ? <form action="/api/crawl/start" method="post" className="mt-3"><input type="hidden" name="siteId" value={activeSite.id} /><button className="rc-text-link">{pick(locale, "Capture site snapshot", "采集网站快照", "Capturar sitio")}<ArrowRight size={13} /></button></form> : <p className="mt-3 text-xs text-[#667085]">{pick(locale, "Connect a site first.", "请先连接网站。", "Conecta un sitio primero.")}</p>}</div>
+        </div></details>
 
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+        <section id="properties" className="data-panel scroll-mt-20 overflow-hidden">
+          <div className="flex items-center justify-between border-b border-[#e7eaf0] px-5 py-4"><div><p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[#8b94a5]">Properties</p><h2 className="mt-1 text-base font-semibold">Imported Search Console sites</h2></div><span className="font-mono text-[9px] uppercase text-[#98a2b3]">{sites.length} live</span></div>
+          {sites.length ? (
+            <div className="overflow-x-auto"><div className="min-w-[820px]">
+              <div className="grid grid-cols-[minmax(260px,1fr)_110px_90px_90px_150px_220px] gap-3 border-b border-[#edf0f5] bg-[#fafbfc] px-5 py-2.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[#8b94a5]"><span>Property</span><span>Permission</span><span>Pages</span><span>Queries</span><span>Last sync</span><span>Actions</span></div>
+              {sites.map((site) => (
+                <div key={site.id} className="grid grid-cols-[minmax(260px,1fr)_110px_90px_90px_150px_220px] items-center gap-3 border-b border-[#edf0f5] px-5 py-3.5 text-[11px] last:border-b-0">
+                  <Link href={`/app/sites/${site.id}`} className="font-semibold text-[#111827] hover:text-[#5268d9]">{propertyName(site.siteUrl)}</Link>
+                  <span className={`font-mono text-[9px] ${site.permissionLevel === "siteUnverifiedUser" ? "text-[#b5473c]" : "text-[#667085]"}`}>{site.permissionLevel === "siteUnverifiedUser" ? "Unverified" : site.permissionLevel}</span>
+                  <span className="font-mono">{site.pageCount.toLocaleString()}</span><span className="font-mono">{site.queryCount.toLocaleString()}</span><span className="text-[#667085]">{formatTime(site.lastSyncedAt)}</span>
+                  {site.permissionLevel === "siteUnverifiedUser" ? (
+                    <span className="text-[10px] font-semibold text-[#b5473c]">Verify access in Search Console</span>
+                  ) : (
+                    <div className="flex gap-2"><form action="/api/integrations/gsc/sync" method="post"><input type="hidden" name="siteId" value={site.id} /><button className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#111827] px-3 text-[10px] font-semibold text-white"><RefreshCw size={11} /> Sync</button></form><form action="/api/crawl/start" method="post"><input type="hidden" name="siteId" value={site.id} /><button className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#dfe3eb] bg-white px-3 text-[10px] font-semibold"><ScanSearch size={11} /> Snapshot</button></form></div>
+                  )}
+                </div>
+              ))}
+            </div></div>
+          ) : <div className="px-5 py-14 text-center"><p className="text-sm font-semibold">No properties imported</p><p className="mt-1 text-[11px] text-[#8b94a5]">Connect the Google account that owns your Search Console properties.</p></div>}
+        </section>
+        <details id="connection-details" className="data-panel scroll-mt-20 px-5 py-4"><summary className="cursor-pointer text-sm font-semibold text-[#435a3a]">{pick(locale, "Connection details and diagnostics", "连接详情与状态检查", "Detalles de conexión y diagnóstico")}</summary>
+          <section className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
           <div className="data-panel overflow-hidden">
             <div className="border-b border-[#e7eaf0] px-5 py-4"><p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[#8b94a5]">Connections</p><h2 className="mt-1 text-base font-semibold">Google access</h2></div>
             <div className="divide-y divide-[#edf0f5]">
@@ -162,27 +163,7 @@ export default async function ConnectPage({ searchParams }: Props) {
             </div>
           </div>
         </section>
-
-        <section id="properties" className="data-panel scroll-mt-20 overflow-hidden">
-          <div className="flex items-center justify-between border-b border-[#e7eaf0] px-5 py-4"><div><p className="font-mono text-[9px] uppercase tracking-[0.14em] text-[#8b94a5]">Properties</p><h2 className="mt-1 text-base font-semibold">Imported Search Console sites</h2></div><span className="font-mono text-[9px] uppercase text-[#98a2b3]">{sites.length} live</span></div>
-          {sites.length ? (
-            <div className="overflow-x-auto"><div className="min-w-[820px]">
-              <div className="grid grid-cols-[minmax(260px,1fr)_110px_90px_90px_150px_220px] gap-3 border-b border-[#edf0f5] bg-[#fafbfc] px-5 py-2.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[#8b94a5]"><span>Property</span><span>Permission</span><span>Pages</span><span>Queries</span><span>Last sync</span><span>Actions</span></div>
-              {sites.map((site) => (
-                <div key={site.id} className="grid grid-cols-[minmax(260px,1fr)_110px_90px_90px_150px_220px] items-center gap-3 border-b border-[#edf0f5] px-5 py-3.5 text-[11px] last:border-b-0">
-                  <Link href={`/app/sites/${site.id}`} className="font-semibold text-[#111827] hover:text-[#5268d9]">{propertyName(site.siteUrl)}</Link>
-                  <span className={`font-mono text-[9px] ${site.permissionLevel === "siteUnverifiedUser" ? "text-[#b5473c]" : "text-[#667085]"}`}>{site.permissionLevel === "siteUnverifiedUser" ? "Unverified" : site.permissionLevel}</span>
-                  <span className="font-mono">{site.pageCount.toLocaleString()}</span><span className="font-mono">{site.queryCount.toLocaleString()}</span><span className="text-[#667085]">{formatTime(site.lastSyncedAt)}</span>
-                  {site.permissionLevel === "siteUnverifiedUser" ? (
-                    <span className="text-[10px] font-semibold text-[#b5473c]">Verify access in Search Console</span>
-                  ) : (
-                    <div className="flex gap-2"><form action="/api/integrations/gsc/sync" method="post"><input type="hidden" name="siteId" value={site.id} /><button className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#111827] px-3 text-[10px] font-semibold text-white"><RefreshCw size={11} /> Sync</button></form><form action="/api/crawl/start" method="post"><input type="hidden" name="siteId" value={site.id} /><button className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#dfe3eb] bg-white px-3 text-[10px] font-semibold"><ScanSearch size={11} /> Snapshot</button></form></div>
-                  )}
-                </div>
-              ))}
-            </div></div>
-          ) : <div className="px-5 py-14 text-center"><p className="text-sm font-semibold">No properties imported</p><p className="mt-1 text-[11px] text-[#8b94a5]">Connect the Google account that owns your Search Console properties.</p></div>}
-        </section>
+        </details>
       </div>
     </AppShell>
   );

@@ -44,6 +44,13 @@ export const appLinks = [
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
+// Order navigation by the work users do, while retaining every existing route.
+export const appLinkGroups = [
+  { en: "Daily work", zh: "日常工作", es: "Trabajo diario", paths: ["overview", "reports", "investigations", "tasks"] },
+  { en: "Explore your data", zh: "查看数据", es: "Explorar datos", paths: ["keywords", "traffic", "audit", "backlinks", "link-campaigns"] },
+  { en: "Manage", zh: "管理", es: "Gestionar", paths: ["connect", "automations", "settings"] },
+].map((group) => ({ ...group, links: group.paths.flatMap((path) => appLinks.filter((link) => link.href === `/app/${path}`)) }));
+
 export const visualAssets = {
   hero: "/visuals/rankcues-01-website-hero.png",
   reports: "/visuals/rankcues-02-feature-automated-seo-reports.png",

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cloneElement, isValidElement } from "react";
 import type { ComponentType, ReactElement, ReactNode } from "react";
 import { ArrowRight, CircleDot, Plus, Radar } from "lucide-react";
-import { appLinks, marketingLinks } from "@/lib/rankcues-data";
+import { appLinkGroups, marketingLinks } from "@/lib/rankcues-data";
 import { getLocale, navLabel, pick, translateUi, type AppLocale } from "@/lib/i18n";
 
 type IconType = ComponentType<{ size?: number; className?: string }>;
@@ -53,7 +53,7 @@ export function BrandMark({ inverse = false, locale = "en" }: { inverse?: boolea
       </span>
       <span>
         <span className="block text-[15px] font-semibold tracking-[-0.035em]">RankCues</span>
-        <span className={`block font-mono text-[8px] uppercase tracking-[0.16em] ${inverse ? "text-white/32" : "text-[#8b94a5]"}`}>
+        <span className={`block font-mono text-[8px] uppercase tracking-[0.16em] ${inverse ? "text-white/60" : "text-[#8b94a5]"}`}>
           {pick(locale, "Search intelligence", "搜索情报", "Inteligencia SEO")}
         </span>
       </span>
@@ -64,20 +64,16 @@ export function BrandMark({ inverse = false, locale = "en" }: { inverse?: boolea
 export function MarketingHeader({ variant = "dark" }: { variant?: "dark" | "light" }) {
   const light = variant === "light";
   return (
-    <header className={`relative z-20 mx-auto flex max-w-[1440px] items-center justify-between gap-6 border-b px-5 py-5 backdrop-blur-xl sm:px-8 lg:px-12 ${light ? "border-[#0f1223]/8 bg-white/80" : "border-white/6 bg-[#0b1220]/92"}`}>
+    <header className={`rc-nav ${light ? "" : "rc-nav-dark"}`}>
       <BrandMark inverse={!light} />
-      <nav className={`hidden items-center gap-7 text-[13px] font-medium lg:flex ${light ? "text-[#5b6272]" : "text-white/58"}`}>
-        {marketingLinks.map((link) => (
-          <Link key={link.href} href={link.href} className={`relative py-1 transition-colors duration-300 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-left after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100 ${light ? "after:bg-[#4f46e5] hover:text-[#111318]" : "after:bg-[#d8bb89] hover:text-white"}`}>
-            {link.label}
-          </Link>
-        ))}
+      <nav className="rc-nav-desktop" aria-label="Main navigation">
+        {marketingLinks.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
       </nav>
-      <Link href="/login" className={light
-        ? "inline-flex h-10 items-center gap-2 rounded-lg bg-[#111318] px-4 text-xs font-semibold text-white shadow-[0_1px_2px_rgba(15,18,35,0.18),0_4px_14px_rgba(15,18,35,0.12)] transition-all duration-300 hover:bg-[#23262e] hover:shadow-[0_2px_4px_rgba(15,18,35,0.18),0_8px_24px_rgba(15,18,35,0.18)]"
-        : "inline-flex h-10 items-center gap-2 rounded-lg border border-white/12 bg-white/[0.07] px-4 text-xs font-semibold text-white transition-all duration-300 hover:border-white/24 hover:bg-white/[0.12] hover:shadow-[0_0_24px_rgba(216,187,137,0.15)]"}>
-        Private beta <ArrowRight size={14} />
-      </Link>
+      <div className="rc-nav-actions">
+        <Link href="/#sample-report">View sample</Link>
+        <Link href="/login" className="rc-button">Invited? Sign in <ArrowRight size={13} /></Link>
+        <details className="rc-mobile-menu"><summary aria-label="Open navigation">Menu</summary><nav aria-label="Mobile navigation">{marketingLinks.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}<Link href="/#sample-report">Sample report</Link></nav></details>
+      </div>
     </header>
   );
 }
@@ -95,44 +91,39 @@ export async function AppShell({
 }) {
   const locale = providedLocale || await getLocale();
   return (
-    <main className="min-h-screen bg-[#f4f6fa] text-[#111827]">
+    <main className="rc-workspace min-h-screen bg-[#f6f8f2] text-[#111827]">
       <div className="grid min-h-screen min-w-0 grid-cols-[minmax(0,1fr)] lg:grid-cols-[224px_minmax(0,1fr)]">
-        <aside className="relative z-20 min-w-0 overflow-hidden border-b border-white/8 bg-[#0e0f13] px-3 py-3 text-white lg:sticky lg:top-0 lg:h-screen lg:border-b-0">
+        <aside className="workspace-sidebar relative z-20 min-w-0 overflow-hidden border-b border-white/8 bg-[#0e0f13] px-3 py-3 text-white lg:sticky lg:top-0 lg:h-screen lg:border-b-0">
           <div className="px-2 py-2.5"><BrandMark inverse locale={locale} /></div>
-          <p className="mt-7 hidden px-3 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-white/26 lg:block">{pick(locale, "Workspace", "工作区", "Espacio")}</p>
-          <nav className="mt-3 flex gap-1 overflow-x-auto pb-1 lg:grid lg:overflow-visible lg:pb-0">
-            {appLinks.map((link) => {
-              const Icon = link.icon;
-              const selected = active === link.href || active.startsWith(`${link.href}/`);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`flex h-10 shrink-0 items-center gap-3 rounded-lg px-3 text-[12px] transition-all duration-200 ${selected ? "bg-gradient-to-r from-white/[0.11] to-white/[0.05] font-semibold text-white shadow-[inset_2px_0_0_#6366f1]" : "text-white/48 hover:bg-white/[0.05] hover:text-white/90"}`}
-                >
-                  <Icon size={15} />
-                  {navLabel(locale, link.label)}
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="mt-6 hidden rounded-xl border border-white/[0.08] bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.2)] lg:block">
+          <div className="workspace-nav-groups">
+            {appLinkGroups.map((group) => <div key={group.en} className="workspace-nav-group">
+              <p>{pick(locale, group.en, group.zh, group.es)}</p>
+              <nav aria-label={pick(locale, group.en, group.zh, group.es)}>
+                {group.links.map((link) => {
+                  const Icon = link.icon;
+                  const selected = active === link.href || active.startsWith(`${link.href}/`);
+                  return <Link key={link.href} href={link.href} aria-current={selected ? "page" : undefined} className="workspace-nav-link"><Icon size={16} />{navLabel(locale, link.label)}</Link>;
+                })}
+              </nav>
+            </div>)}
+          </div>
+          <div className="workspace-helper mt-6 hidden rounded-xl border border-white/[0.08] bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.2)] lg:block">
             <div className="flex items-center gap-2 text-[11px] font-semibold text-white/74">
-              <CircleDot size={13} className="text-[#39d6ba]" /> {pick(locale, "Production workspace", "生产工作区", "Espacio de producción")}
+              <CircleDot size={13} className="text-[#39d6ba]" /> {pick(locale, "Your workspace", "你的工作区", "Tu espacio")}
             </div>
-            <p className="mt-1.5 text-[10px] leading-4 text-white/34">{pick(locale, "Only connected data is shown.", "仅显示已接入的真实数据。", "Solo se muestran datos conectados.")}</p>
+            <p className="mt-1.5 text-[10px] leading-4 text-white/65">{pick(locale, "Only connected data is shown.", "仅显示已接入的真实数据。", "Solo se muestran datos conectados.")}</p>
           </div>
         </aside>
 
         <section className="min-w-0 max-w-full">
-          <div className="sticky top-0 z-10 border-b border-[#dfe3eb] bg-white/88 px-4 py-3 backdrop-blur-xl sm:px-6 lg:px-8">
+          <div className="workspace-topbar sticky top-0 z-10 border-b border-[#dfe3eb] bg-white/88 px-4 py-3 backdrop-blur-xl sm:px-6 lg:px-8">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[11px] font-semibold text-[#111827]">RankCues Cloud</p>
+                <p className="workspace-breadcrumb">{pick(locale, "Workspace", "工作区", "Espacio")} / {navLabel(locale, appLinkGroups.flatMap((group) => group.links).find((link) => active === link.href || active.startsWith(`${link.href}/`))?.label || "Overview")}</p>
                 <p className="mt-0.5 text-[9px] text-[#8b94a5]">{pick(locale, "Search intelligence workspace", "搜索情报工作区", "Espacio de inteligencia SEO")}</p>
               </div>
               <div className="ml-auto flex items-center gap-2">
-                <div className="hidden items-center rounded-lg border border-[#e3e7ef] bg-white p-0.5 md:flex" aria-label={pick(locale, "Interface language", "界面语言", "Idioma de la interfaz")}>
+                <div className="flex items-center rounded-lg border border-[#e3e7ef] bg-white p-0.5" aria-label={pick(locale, "Interface language", "界面语言", "Idioma de la interfaz")}>
                   {(["en", "zh", "es"] as const).map((value) => (
                     <form key={value} action="/api/preferences/locale" method="post">
                       <input type="hidden" name="locale" value={value} />
@@ -141,7 +132,7 @@ export async function AppShell({
                   ))}
                 </div>
                 <span className="hidden items-center gap-2 rounded-lg border border-[#e3e7ef] bg-[#f8fafc] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.08em] text-[#667085] sm:inline-flex">
-                  <span className="status-dot size-1.5 rounded-full bg-[#39d6ba]" /> {pick(locale, "Live data", "实时数据", "Datos activos")}
+                  {pick(locale, "Private beta", "内测版", "Beta privada")}
                 </span>
                 <Link href="/app/connect" className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#111827] px-3.5 text-[11px] font-semibold text-white shadow-[0_1px_2px_rgba(16,24,40,0.2),0_4px_12px_rgba(16,24,40,0.12)] transition-all duration-200 hover:bg-[#1f2937] hover:shadow-[0_2px_4px_rgba(16,24,40,0.2),0_8px_20px_rgba(16,24,40,0.16)] active:scale-[0.98]">
                   <Plus size={14} /> {pick(locale, "Add property", "添加网站", "Añadir sitio")}

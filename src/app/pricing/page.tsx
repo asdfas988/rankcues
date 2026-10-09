@@ -1,73 +1,245 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Check, FlaskConical, ShieldCheck } from "lucide-react";
-import { MarketingHeader } from "@/components/rankcues-ui";
-
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  Search,
+  BarChart3,
+  Layers3,
+  FileText,
+  ListChecks,
+  Globe2,
+  Radar,
+  ShieldCheck,
+} from "lucide-react";
+import {
+  PublicHeader,
+  PublicFooter,
+  PublicFaq,
+} from "@/components/marketing-site";
+import s from "@/components/marketing.module.css";
 export const metadata: Metadata = {
-  title: "Private Beta Access and Pricing",
-  description: "RankCues is currently an invitation-only private beta. Review active GSC, GA4, change detection and managed AI capabilities, plus features planned for commercial launch.",
+  title: "Pricing & Private Beta Access",
+  description:
+    "Explore RankCues private beta access, included SEO reporting capabilities and what you need to get started. Commercial pricing is not published yet.",
   alternates: { canonical: "/pricing" },
 };
-
-const activeCapabilities = [
-  "Google Search Console query and page performance",
-  "GA4 landing-page context and property mapping",
-  "Tracked GSC keyword positions by device",
-  "Page-change snapshots and evidence ledger",
-  "Managed AI weekly investigation reports",
-  "Reviewable SEO tasks with follow-up measurement",
+const capabilities = [
+  {
+    icon: Search,
+    title: "Search Console performance",
+    body: "Clicks, impressions, queries and pages. Start with the search data behind your client’s website.",
+  },
+  {
+    icon: BarChart3,
+    title: "GA4 context",
+    body: "Map an Analytics property to add sessions and conversion context to your investigation.",
+  },
+  {
+    icon: Layers3,
+    title: "Page-change evidence",
+    body: "Use snapshots to review page updates alongside movement in search performance.",
+  },
+  {
+    icon: FileText,
+    title: "AI investigation reports",
+    body: "Generate a weekly draft with findings and next steps, ready for your team to review.",
+  },
+  {
+    icon: ListChecks,
+    title: "Reviewable SEO tasks",
+    body: "Turn findings into follow-up work and keep the decision connected to its evidence.",
+  },
+  {
+    icon: Globe2,
+    title: "A view across your sites",
+    body: "Move between connected properties and investigate the pages that need attention.",
+  },
 ];
-
-const notYetSold = [
-  "Exact third-party geo SERP tracking",
-  "Managed backlink-provider data",
-  "White-label PDF or email delivery",
-  "Multiple organizations, roles and invitations",
-  "Self-serve billing and plan enforcement",
-];
-
+const questions = [
+  [
+    "How much does RankCues cost?",
+    "Commercial prices and plan limits have not been published. RankCues is currently an invitation-only private beta, with no self-serve checkout. Review your invitation for the terms of your beta access.",
+  ],
+  [
+    "Can I sign up today?",
+    "Invited users can sign in with their approved Google account. Public self-serve registration is not available yet. Everyone can explore the fictional sample on the homepage without an account.",
+  ],
+  [
+    "What do I need to connect my first site?",
+    "Your approved Google account needs access to a verified Search Console property. Sign in, choose a website and sync its search data. GA4 mapping and page snapshots are optional additions.",
+  ],
+  [
+    "Does the beta include white-label report delivery?",
+    "White-label PDF export and automatic client email delivery are not currently offered. Generated investigation reports are drafts to review in the workspace before using their findings with a client.",
+  ],
+  [
+    "Does connecting Google let RankCues edit my website?",
+    "No. Google access is read-only. Website execution integrations and reviewed tasks are separate from connecting your reporting data.",
+  ],
+] as const;
 export default function PricingPage() {
   return (
-    <main className="min-h-screen bg-[#f3f0e8] text-[#0a0d0c]">
-      <MarketingHeader />
-      <section className="relative overflow-hidden border-y border-[#0a0d0c]/10 px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
-        <div className="paper-grid absolute inset-0 opacity-70" />
-        <div className="relative mx-auto grid max-w-[1280px] gap-12 lg:grid-cols-[0.86fr_1.14fr] lg:items-end">
-          <div>
-            <p className="section-kicker">Pricing status</p>
-            <h1 className="mt-5 font-display text-[clamp(3.8rem,7vw,7rem)] font-medium leading-[0.88] tracking-[-0.06em]">Private beta. No checkout theatre.</h1>
-          </div>
-          <div className="lg:pb-3">
-            <p className="max-w-2xl text-lg leading-8 text-[#66706a]">RankCues is not accepting self-serve payment yet. Approved testers can use the current workspace while we validate reliability, tenant isolation and the reporting workflow.</p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/login" className="inline-flex h-12 items-center gap-2 rounded-full bg-[#0a0d0c] px-5 text-sm font-semibold text-white">Private-beta sign in <ArrowRight size={16} /></Link>
-              <Link href="/contact" className="inline-flex h-12 items-center rounded-full border border-[#0a0d0c]/15 bg-white/50 px-5 text-sm font-semibold">Request access information</Link>
+    <div className={s.page} lang="en">
+      <a href="#main-content" className={s.skip}>
+        Skip to content
+      </a>
+      <PublicHeader />
+      <main id="main-content">
+        <section className={s.pricingHero}>
+          <p className={s.pill}>
+            <span /> PRICING & ACCESS
+          </p>
+          <h1>
+            A clearer view.
+            <br />
+            <span>Start with early access.</span>
+          </h1>
+          <p className={s.lead}>
+            RankCues is in private beta for SEO consultants and small teams.
+            <br className={s.desktopBreak} /> Explore the workflow. Connect your
+            sites when you’re invited.
+          </p>
+        </section>
+        <section
+          className={`${s.container} ${s.accessGrid}`}
+          aria-label="Private beta access"
+        >
+          <article className={s.accessCard}>
+            <div className={s.accessTop}>
+              <span className={s.iconTile}>
+                <Radar size={25} />
+              </span>
+              <span className={s.status}>
+                <i /> PRIVATE BETA
+              </span>
             </div>
+            <p className={s.kicker}>ONE CONNECTED WORKSPACE</p>
+            <h2>Early access.</h2>
+            <p className={s.accessSubtitle}>
+              A closer look at your clients’ search performance.
+            </p>
+            <div className={s.accessTerms}>
+              <strong>By invitation</strong>
+              <span>Commercial pricing is not published yet.</span>
+            </div>
+            <Link href="/login?returnTo=%2Fapp%2Fconnect" className={s.button}>
+              Invited? Open your workspace <ArrowRight size={17} />
+            </Link>
+            <p className={s.accessNote}>
+              Use the Google account approved for your beta access.
+            </p>
+            <ul>
+              {[
+                "Search Console data across connected sites",
+                "Optional GA4 context and page snapshots",
+                "AI reports with evidence for your review",
+                "Tasks and follow-up measurement",
+              ].map((t) => (
+                <li key={t}>
+                  <Check size={17} />
+                  {t}
+                </li>
+              ))}
+            </ul>
+            <div className={s.accessBottom}>
+              <ShieldCheck size={16} /> Read-only Google access
+            </div>
+          </article>
+          <aside className={s.accessAside}>
+            <div className={s.orbit} aria-hidden="true">
+              <div />
+              <div />
+              <span>
+                <Radar size={45} />
+              </span>
+              <i className={s.orbitSearch}>
+                <Search size={22} />
+              </i>
+              <i className={s.orbitChart}>
+                <BarChart3 size={22} />
+              </i>
+              <i className={s.orbitFile}>
+                <FileText size={22} />
+              </i>
+              <i className={s.orbitCheck}>
+                <Check size={21} />
+              </i>
+            </div>
+            <p className={s.kicker}>BUILT FOR THE PERSON DOING THE WORK</p>
+            <h2>
+              More context.
+              <br />
+              Better next steps.
+            </h2>
+            <p>
+              For consultants and small teams who need to explain what changed,
+              decide what to check and keep client work moving.
+            </p>
+            <Link href="/#sample-report" className={s.secondary}>
+              Explore a sample first <ArrowUpRight size={16} />
+            </Link>
+            <span className={s.asideNote}>
+              Interactive demo · No account needed
+            </span>
+          </aside>
+        </section>
+        <section className={`${s.container} ${s.section}`}>
+          <div className={s.sectionHeading}>
+            <div>
+              <p className={s.kicker}>INSIDE THE BETA</p>
+              <h2>
+                The pieces you need.
+                <br />A more connected picture.
+              </h2>
+            </div>
+            <p>
+              Start with search performance.
+              <br />
+              Bring in the context that helps
+              <br className={s.desktopBreak} /> you decide what comes next.
+            </p>
           </div>
-        </div>
-      </section>
-
-      <section className="px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
-        <div className="mx-auto grid max-w-[1280px] gap-5 lg:grid-cols-2">
-          <article className="premium-card p-6 sm:p-8">
-            <span className="flex size-11 items-center justify-center rounded-2xl bg-[#101714] text-[#d8bb89]"><Check size={19} /></span>
-            <p className="mt-7 font-mono text-[11px] uppercase tracking-[0.14em] text-[#8a6a39]">Active in the beta</p>
-            <h2 className="mt-3 font-display text-4xl font-medium tracking-[-0.04em]">Connected evidence and managed analysis</h2>
-            <ul className="mt-7 grid gap-3">
-              {activeCapabilities.map((item) => <li key={item} className="flex gap-3 border-t border-[#0a0d0c]/8 pt-3 text-sm leading-6"><Check size={16} className="mt-1 shrink-0 text-[#247c6c]" /> {item}</li>)}
-            </ul>
-          </article>
-          <article className="rounded-[20px] border border-white/9 bg-[#101714] p-6 text-white shadow-[0_24px_80px_rgba(10,13,12,0.16)] sm:p-8">
-            <span className="flex size-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-[#d8bb89]"><FlaskConical size={19} /></span>
-            <p className="mt-7 font-mono text-[11px] uppercase tracking-[0.14em] text-[#d8bb89]">Commercial boundary</p>
-            <h2 className="mt-3 font-display text-4xl font-medium tracking-[-0.04em]">Not presented as available</h2>
-            <ul className="mt-7 grid gap-3">
-              {notYetSold.map((item) => <li key={item} className="flex gap-3 border-t border-white/9 pt-3 text-sm leading-6 text-white/62"><ShieldCheck size={16} className="mt-1 shrink-0 text-[#8ed8ca]" /> {item}</li>)}
-            </ul>
-          </article>
-        </div>
-        <p className="mx-auto mt-8 max-w-3xl text-center text-xs leading-6 text-[#66706a]">Commercial plans and usage limits will be published only after billing, data costs and workspace isolation are enforced in the product.</p>
-      </section>
-    </main>
+          <div className={s.capabilities}>
+            {capabilities.map(({ icon: Icon, title, body }) => (
+              <article key={title}>
+                <span className={s.iconTile}>
+                  <Icon size={22} />
+                </span>
+                <h3>{title}</h3>
+                <p>{body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+        <section className={s.faqBand}>
+          <div className={`${s.container} ${s.faq}`}>
+            <div>
+              <p className={s.kicker}>THE DETAILS</p>
+              <h2>
+                Clear from
+                <br />
+                the first click.
+              </h2>
+              <p>
+                Access, pricing and what
+                <br />
+                to expect in the beta.
+              </p>
+            </div>
+            <PublicFaq questions={questions} />
+          </div>
+        </section>
+        <section className={`${s.container} ${s.pricingClosing}`}>
+          <h2>See a signal become a plan.</h2>
+          <p>Get a feel for RankCues with an interactive example.</p>
+          <Link href="/#sample-report" className={s.button}>
+            Explore the demo <ArrowRight size={17} />
+          </Link>
+        </section>
+      </main>
+      <PublicFooter />
+    </div>
   );
 }
