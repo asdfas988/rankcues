@@ -123,15 +123,20 @@ export async function GET(request: Request) {
     } catch (error) {
       const issue = classifyGa4DiscoveryError(error);
       ga4Status = issue.code;
-      await updateGa4DiscoveryStatus({
-        connectionId: connection.id,
-        workspaceId: access.workspaceId,
-        status: "failed",
-        errorCode: issue.code,
-        error: issue.message,
-      });
+      try {
+        await updateGa4DiscoveryStatus({
+          connectionId: connection.id,
+          workspaceId: access.workspaceId,
+          status: "failed",
+          errorCode: issue.code,
+          error: issue.message,
+        });
+      } catch (statusError) {
+        console.warn("Could not persist GA4 discovery failure", statusError);
+      }
       console.warn("Google OAuth completed but GA4 discovery was unavailable", issue.code);
     }
+    stage = "session";
     const response = redirectWithStatus(request, "connected", {
       sites: String(sites.length),
       ga4: String(ga4Count),
