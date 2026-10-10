@@ -56,6 +56,16 @@ function redirectWithStatus(request: Request, status: string, extra?: Record<str
   return response;
 }
 
+function failureStage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.includes("Token exchange")) return "token-exchange";
+  if (message.includes("Search Console site listing")) return "search-console-api";
+  if (message.includes("Google user lookup")) return "google-user-api";
+  if (message.includes("required")) return "configuration";
+  if (message.includes("database") || message.includes("relation") || message.includes("postgres")) return "database";
+  return "callback";
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   if (url.searchParams.get("error")) {
@@ -135,6 +145,6 @@ export async function GET(request: Request) {
     return response;
   } catch (error) {
     console.error("Google OAuth callback failed", error);
-    return redirectWithStatus(request, "error");
+    return redirectWithStatus(request, "error", { reason: failureStage(error) });
   }
 }

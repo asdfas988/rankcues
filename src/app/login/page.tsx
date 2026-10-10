@@ -16,6 +16,7 @@ export default async function LoginPage({
   searchParams: Promise<{
     returnTo?: string;
     google?: string;
+    reason?: string;
     signedOut?: string;
   }>;
 }) {
@@ -39,6 +40,7 @@ export default async function LoginPage({
           : params.google === "error"
             ? "Google sign-in could not be completed. Please try again."
             : null;
+  const failureReason = params.google === "error" ? params.reason : undefined;
   return (
     <main className="rc-login" lang="en">
       <header className="rc-login-header rc-container">
@@ -85,6 +87,7 @@ export default async function LoginPage({
           {error ? (
             <div className="login-alert" role="alert">
               {error}
+              {failureReason ? ` (stage: ${failureReason})` : ""}
             </div>
           ) : null}
           {params.signedOut ? (
