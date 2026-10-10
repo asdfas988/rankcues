@@ -1,53 +1,43 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  BarChart3,
-  Check,
-  FileText,
-  Globe2,
-  Search,
-  ShieldCheck,
-  Activity,
-  Layers3,
-  MousePointer2,
-} from "lucide-react";
-import {
-  PublicHeader,
-  PublicFooter,
-  PublicFaq,
-} from "@/components/marketing-site";
+import { ArrowRight, BarChart3, GitPullRequest, Globe2, Search } from "lucide-react";
+import { PublicHeader, PublicFooter, PublicFaq } from "@/components/marketing-site";
 import { ReportPreview } from "@/components/report-preview";
+import { RegressionDemo } from "@/components/regression-demo";
 import s from "@/components/marketing.module.css";
+import h from "@/components/home.module.css";
 
 export const metadata: Metadata = {
-  title: { absolute: "SEO Reporting Software for Agencies | RankCues" },
+  title: { absolute: "Find the Change Behind a Traffic Drop | RankCues" },
   description:
-    "SEO reporting for consultants and small agencies. Connect Search Console, investigate changes and turn the evidence into clear next steps. Explore the interactive demo.",
+    "RankCues watches Search Console for every site you run, lines up traffic drops with the page edits recorded on that site, and turns the evidence into a fix you can review.",
   alternates: { canonical: "/" },
 };
 
 const questions = [
   [
-    "Who is RankCues built for?",
-    "Independent SEO consultants and small SEO teams managing multiple client websites. It brings search performance, page changes and reviewable recommendations into one workspace.",
+    "Who is RankCues for?",
+    "People who look after several websites at once: developers and indie makers running their own portfolio of sites, and SEO consultants or small teams managing client sites.",
   ],
   [
-    "What do I need for my first report?",
-    "An invited RankCues account and access to a verified Google Search Console property. Sign in with your approved Google account, open a website, sync its search data and generate your first report. GA4 and page snapshots add optional context.",
+    "What do I need to get started?",
+    "A private-beta invitation and access to a verified Google Search Console property. GA4, page snapshots and a GitHub or WordPress connection add context and are optional.",
   ],
   [
-    "What access does Google connection give you?",
-    "Google access is read-only. Signing in imports the Search Console properties visible to your Google account. Connecting Google does not grant website editing access; execution integrations and task review are separate.",
+    "What access does connecting Google give RankCues?",
+    "Read-only access to Search Console and, if you add it, GA4. Connecting Google never gives RankCues permission to edit a website.",
   ],
   [
-    "How should I use the AI findings?",
-    "Treat generated findings as a draft for your review. RankCues distinguishes observations, correlations and hypotheses. A page change near a traffic drop does not prove causation. Check the underlying evidence before sharing conclusions.",
+    "Does RankCues change my code or my site?",
+    "Not on its own. With GitHub connected, a fix you approve is opened as a draft pull request in your repository. With WordPress connected, it is saved as a separate draft. You review and merge or publish it yourself.",
   ],
   [
-    "Can I try it without connecting my account?",
-    "Yes. The interactive sample on this page is open to everyone and uses fictional data. Connecting your own websites currently requires a private-beta invitation. Public self-serve registration is not available yet.",
+    "Can I trust the explanations?",
+    "Treat them as a starting point. Each finding is labelled as observed, correlated or still to verify, and a change near a drop is never presented as proof that it caused the drop.",
+  ],
+  [
+    "Can I try it without connecting anything?",
+    "Yes. The chart at the top of this page and the sample brief below use fictional data and are open to everyone. Connecting your own sites currently needs a private-beta invitation.",
   ],
 ] as const;
 
@@ -59,62 +49,48 @@ export default function Home() {
       </a>
       <PublicHeader />
       <main id="main-content">
-        <section className={s.hero} id="product">
-          <div className={s.heroGrid} aria-hidden="true" />
-          <div className={s.heroIntro}>
-            <p className={s.pill}>
-              <span /> SEO REPORTING FOR CONSULTANTS & SMALL AGENCIES
+        <section className={`${s.container} ${h.hero}`} id="product">
+          <div>
+            <h1>Find the change behind every traffic drop.</h1>
+            <p className={h.lead}>
+              RankCues watches Search Console for every site you run, lines up drops with the page edits
+              recorded on that site, and turns what it finds into a fix you can review, ship and measure.
             </p>
-            <h1>
-              Your SEO data.
-              <br />
-              <span>Your next best move.</span>
-            </h1>
-            <p className={s.lead}>
-              Connect Search Console. Find what needs a closer look.
-              <br className={s.desktopBreak} /> Turn search data into a clear
-              plan for every client.
-            </p>
-            <div className={s.actions}>
-              <Link href="#sample-report" className={s.button}>
-                Explore the live demo <ArrowRight size={17} />
+            <div className={h.heroActions}>
+              <Link href="#how-it-works" className={s.button}>
+                See how it works <ArrowRight size={17} />
               </Link>
-              <Link
-                href="/login?returnTo=%2Fapp%2Fconnect"
-                className={s.secondary}
-              >
-                Connect your first site <ArrowUpRight size={17} />
+              <Link href="/login?returnTo=%2Fapp%2Fconnect" className={s.secondary}>
+                Invited? Connect a site
               </Link>
             </div>
-            <p className={s.heroNote}>
-              <Check size={14} /> No account needed for the demo <span>·</span>{" "}
-              Site connection is invite-only
-            </p>
+            <p className={h.heroNote}>Pick a marker on the chart to see what was recorded that day. Sample data.</p>
           </div>
-          <div className={`${s.container} ${s.showcase}`}>
-            <div className={s.showcaseLabel}>
-              <span>
-                <MousePointer2 size={14} /> A little less guesswork. Try the
-                workflow below.
-              </span>
-              <span>INTERACTIVE PRODUCT PREVIEW</span>
-            </div>
-            <ReportPreview />
-          </div>
+          <RegressionDemo />
         </section>
-        <section
-          className={`${s.container} ${s.sources}`}
-          aria-label="Supported data sources"
-        >
+
+        <section className={`${s.container} ${s.sources}`} aria-label="Data sources">
           <p>
-            A clearer view starts with
+            Built on data
             <br />
-            <strong>the data you already trust.</strong>
+            <strong>you already have.</strong>
           </p>
           <div>
             <Search size={25} />
             <span>
-              Search Console<small>Your starting point</small>
+              Search Console<small>Required</small>
+            </span>
+          </div>
+          <div>
+            <Globe2 size={25} />
+            <span>
+              Page snapshots<small>Records on-page changes</small>
+            </span>
+          </div>
+          <div>
+            <GitPullRequest size={25} />
+            <span>
+              GitHub or WordPress<small>Optional, for drafting fixes</small>
             </span>
           </div>
           <div>
@@ -123,204 +99,96 @@ export default function Home() {
               Google Analytics 4<small>Optional conversion context</small>
             </span>
           </div>
-          <div>
-            <Globe2 size={25} />
-            <span>
-              Page snapshots<small>Optional change history</small>
-            </span>
-          </div>
         </section>
-        <section className={`${s.container} ${s.section}`}>
-          <div className={s.sectionHeading}>
-            <div>
-              <p className={s.kicker}>FROM SIGNAL TO NEXT STEP</p>
-              <h2>
-                More clarity.
-                <br />
-                Across every client site.
-              </h2>
-            </div>
-            <p>
-              The numbers are a starting point.
-              <br />
-              Keep the evidence, the explanation and
-              <br className={s.desktopBreak} /> the next action together.
-            </p>
-          </div>
-          <div className={s.benefits}>
-            <article>
-              <div className={s.iconTile}>
-                <Activity size={23} />
-              </div>
-              <h3>
-                Spot the change.
-                <br />
-                Find your starting point.
-              </h3>
-              <p>
-                Move from your website portfolio to the pages and queries behind
-                a change in search performance.
-              </p>
-              <div className={s.signalVisual} aria-hidden="true">
-                <span>/services</span>
-                <div>
-                  <i style={{ width: "82%" }} />
-                </div>
-                <span>−18.4%</span>
-                <span>/locations</span>
-                <div>
-                  <i style={{ width: "55%" }} />
-                </div>
-                <span>−7.2%</span>
-                <span>/blog</span>
-                <div>
-                  <i style={{ width: "32%" }} />
-                </div>
-                <span>−2.1%</span>
-              </div>
-              <Link href="/resources/seo-anomaly-detection">
-                Explore SEO signals <ArrowUpRight size={16} />
-              </Link>
-            </article>
-            <article>
-              <div className={s.iconTile}>
-                <Layers3 size={23} />
-              </div>
-              <h3>
-                Check the evidence.
-                <br />
-                Keep the context.
-              </h3>
-              <p>
-                Review search movement alongside page updates. Separate what
-                happened from what still needs checking.
-              </p>
-              <div className={s.evidenceVisual}>
-                <span>
-                  <i /> Search Console <b>Observed</b>
-                </span>
-                <span>
-                  <i /> Title update <b>Correlated</b>
-                </span>
-                <span>
-                  <i /> Search intent <b>To verify</b>
-                </span>
-              </div>
-              <Link href="/resources/seo-change-tracking">
-                Follow the evidence <ArrowUpRight size={16} />
-              </Link>
-            </article>
-            <article>
-              <div className={s.iconTile}>
-                <FileText size={23} />
-              </div>
-              <h3>
-                Make the next call
-                <br />a clearer conversation.
-              </h3>
-              <p>
-                Generate a weekly brief with findings and follow-up tasks.
-                Review the story before using it with your client.
-              </p>
-              <div className={s.briefVisual}>
-                <span>YOUR WEEKLY BRIEF</span>
-                <strong>What changed → What’s next</strong>
-                <i />
-                <i />
-                <i />
-              </div>
-              <Link href="/features/automated-seo-reports">
-                See how reporting works <ArrowUpRight size={16} />
-              </Link>
-            </article>
-          </div>
-          <p className={s.visualNote}>
-            Illustrative examples. No real client results are shown.
-          </p>
-        </section>
-        <section className={s.workflow} id="how-it-works">
+
+        <section className={h.audiences} aria-labelledby="audiences-heading">
           <div className={s.container}>
-            <div className={s.sectionHeading}>
-              <div>
-                <p className={s.kicker}>A SIMPLE FIRST STEP</p>
-                <h2>
-                  One website.
-                  <br />
-                  Your first clear next move.
-                </h2>
-              </div>
-              <p>
-                Start with Search Console.
-                <br />
-                Add more context when you need it.
-              </p>
+            <div className={h.sectionHead}>
+              <h2 id="audiences-heading">One workspace for every site you look after.</h2>
+              <p>Whether the sites are yours or your clients&apos;, the job is the same: notice what moved, find out why, and fix it before it costs you.</p>
             </div>
-            <ol className={s.steps}>
-              {[
-                [
-                  "01",
-                  "Connect your Google account",
-                  "Use your invited account with access to Search Console. Your available properties appear in the workspace.",
-                ],
-                [
-                  "02",
-                  "Open a site. Sync the data.",
-                  "Choose a property and bring in its search performance. GA4 and page snapshots can come later.",
-                ],
-                [
-                  "03",
-                  "Generate. Review. Take action.",
-                  "Read your report, check the evidence and decide what to do next. Keep the follow-up attached to the finding.",
-                ],
-              ].map(([n, t, p]) => (
-                <li key={n}>
-                  <span>{n}</span>
-                  <h3>{t}</h3>
-                  <p>{p}</p>
-                </li>
-              ))}
-            </ol>
-            <div className={s.workflowBottom}>
-              <span>
-                <ShieldCheck size={17} /> Read-only Google access. Your team
-                reviews the findings.
-              </span>
-              <Link
-                href="/login?returnTo=%2Fapp%2Fconnect"
-                className={s.button}
-              >
-                Set up your first site <ArrowRight size={16} />
-              </Link>
+            <div className={h.audienceGrid}>
+              <article className={h.audience} id="developers">
+                <h3>For developers running many sites</h3>
+                <p>You ship often and nobody checks Search Console after every deploy. RankCues does.</p>
+                <ul>
+                  <li>All your Search Console properties on one screen, with the sites that dropped listed first.</li>
+                  <li>Page edits caught by daily snapshots, shown next to the traffic they may have affected.</li>
+                  <li>Approved fixes opened as draft pull requests in your own repository.</li>
+                  <li>A follow-up check after each fix, so you know whether it worked.</li>
+                </ul>
+                <p className={h.later}>Linking drops to Git commits and deploys is not available yet.</p>
+              </article>
+              <article className={h.audience} id="consultants">
+                <h3>For SEO consultants and small teams</h3>
+                <p>Clients ask why traffic moved. Answer with the evidence instead of a pile of charts.</p>
+                <ul>
+                  <li>Every client site in one portfolio, sorted by what needs attention.</li>
+                  <li>Findings that keep what was observed apart from what is only suspected.</li>
+                  <li>A weekly brief you review and edit before it goes to the client.</li>
+                  <li>Tasks with a measurement window, so results are reported, not guessed.</li>
+                </ul>
+                <p className={h.later}>White-label PDFs and client logins are not available yet.</p>
+              </article>
             </div>
           </div>
         </section>
+
+        <section className={h.loop} id="how-it-works" aria-labelledby="loop-heading">
+          <div className={s.container}>
+            <div className={h.sectionHead}>
+              <h2 id="loop-heading">From a drop to a verified fix.</h2>
+              <p>Each finding moves through the same four steps, and stays attached to its evidence the whole way.</p>
+            </div>
+            <ol className={h.loopSteps}>
+              <li>
+                <h3>Notice</h3>
+                <p>Daily Search Console syncs compare each site with its previous week and flag real drops, not daily noise.</p>
+              </li>
+              <li>
+                <h3>Line it up</h3>
+                <p>The drop is placed next to the page edits recorded on that site, so you start from the likely change.</p>
+              </li>
+              <li>
+                <h3>Fix</h3>
+                <p>Turn a finding into a task. With GitHub or WordPress connected, the fix is prepared as a draft for your review.</p>
+              </li>
+              <li>
+                <h3>Verify</h3>
+                <p>After the fix ships, the same pages are measured again over a set window and the outcome is recorded.</p>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section className={`${s.container} ${h.brief}`} aria-labelledby="brief-heading">
+          <div className={h.sectionHead}>
+            <h2 id="brief-heading">The weekly brief, ready to review.</h2>
+            <p>For consultants who report to clients: changes, next actions and a client summary in one place. Switch views below. Sample data.</p>
+          </div>
+          <div className={h.briefDemo}>
+            <ReportPreview />
+          </div>
+        </section>
+
         <section className={`${s.container} ${s.section} ${s.faq}`}>
           <div>
-            <p className={s.kicker}>GOOD QUESTIONS</p>
-            <h2>
-              Before your
-              <br />
-              first connection.
-            </h2>
-            <p>
-              A few things to know about
-              <br />
-              the product and private beta.
-            </p>
+            <h2>Questions before you connect a site.</h2>
+            <p>What RankCues can access, what it changes, and how the private beta works.</p>
             <Link href="/pricing" className={s.textLink}>
-              About beta access <ArrowUpRight size={16} />
+              Beta access and pricing <ArrowRight size={16} />
             </Link>
           </div>
           <PublicFaq questions={questions} />
         </section>
+
         <section className={`${s.container} ${s.finalCta}`}>
           <div>
-            <p className={s.kicker}>LESS GUESSWORK. A CLEARER NEXT STEP.</p>
-            <h2>Make sense of the movement.</h2>
-            <p>Explore a sample. See how a signal becomes a plan.</p>
+            <h2>Know what changed before anyone asks.</h2>
+            <p>Connect one site to see its first findings.</p>
           </div>
-          <Link href="#sample-report" className={s.button}>
-            Take a look inside <ArrowRight size={17} />
+          <Link href="/login?returnTo=%2Fapp%2Fconnect" className={s.button}>
+            Invited? Connect a site <ArrowRight size={17} />
           </Link>
         </section>
       </main>

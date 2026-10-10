@@ -12,7 +12,8 @@ export function PublicHeader() {
         RankCues<span className={s.beta}>BETA</span>
       </Link>
       <nav className={s.desktopNav} aria-label="Main navigation">
-        <Link href="/#product">Product</Link>
+        <Link href="/#developers">For developers</Link>
+        <Link href="/#consultants">For consultants</Link>
         <Link href="/#how-it-works">How it works</Link>
         <Link href="/resources">Resources</Link>
         <Link href="/pricing">Pricing</Link>
@@ -21,13 +22,14 @@ export function PublicHeader() {
         <Link href="/login" className={s.signIn}>
           Sign in <ArrowRight size={15} />
         </Link>
-        <Link href="/#sample-report" className={s.button}>
-          Explore demo <ArrowRight size={15} />
+        <Link href="/#product" className={s.button}>
+          Try the sample <ArrowRight size={15} />
         </Link>
         <details className={s.mobileMenu}>
           <summary aria-label="Open navigation">Menu</summary>
           <nav aria-label="Mobile navigation">
-            <Link href="/#product">Product</Link>
+            <Link href="/#developers">For developers</Link>
+            <Link href="/#consultants">For consultants</Link>
             <Link href="/#how-it-works">How it works</Link>
             <Link href="/resources">Resources</Link>
             <Link href="/pricing">Pricing</Link>
@@ -48,7 +50,7 @@ export function PublicFooter() {
         </span>
         RankCues
       </Link>
-      <p>Search data. Clear decisions.</p>
+      <p>Find the change behind every traffic drop.</p>
       <nav aria-label="Footer">
         <Link href="/about">About</Link>
         <Link href="/contact">Contact</Link>

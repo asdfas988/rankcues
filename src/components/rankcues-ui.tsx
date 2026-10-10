@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cloneElement, isValidElement } from "react";
 import type { ComponentType, ReactElement, ReactNode } from "react";
 import { ArrowRight, CircleDot, Plus, Radar } from "lucide-react";
-import { appLinkGroups, marketingLinks } from "@/lib/rankcues-data";
+import { appLinkGroups, isAppLinkActive, marketingLinks } from "@/lib/rankcues-data";
 import { getLocale, navLabel, pick, translateUi, type AppLocale } from "@/lib/i18n";
 
 type IconType = ComponentType<{ size?: number; className?: string }>;
@@ -41,22 +41,12 @@ function localizeNode(node: ReactNode, locale: AppLocale): ReactNode {
   return Object.keys(nextProps).length ? cloneElement(element, nextProps) : element;
 }
 
-export function BrandMark({ inverse = false, locale = "en" }: { inverse?: boolean; locale?: AppLocale }) {
+// `locale` is kept for call-site compatibility; the mark itself is language-neutral.
+export function BrandMark({ inverse = false }: { inverse?: boolean; locale?: AppLocale }) {
   return (
-    <Link
-      href="/"
-      className={`group inline-flex items-center gap-3 ${inverse ? "text-white" : "text-[#111827]"}`}
-    >
-      <span className={`relative flex size-9 items-center justify-center overflow-hidden rounded-lg border shadow-[0_2px_8px_rgba(0,0,0,0.18)] ${inverse ? "border-white/12 bg-white/[0.08] text-white" : "border-[#111318] bg-[#111318] text-white"}`}>
-        <Radar size={18} />
-        <span className="absolute inset-x-2 bottom-1.5 h-px bg-current opacity-50" />
-      </span>
-      <span>
-        <span className="block text-[15px] font-semibold tracking-[-0.035em]">RankCues</span>
-        <span className={`block font-mono text-[8px] uppercase tracking-[0.16em] ${inverse ? "text-white/60" : "text-[#8b94a5]"}`}>
-          {pick(locale, "Search intelligence", "搜索情报", "Inteligencia SEO")}
-        </span>
-      </span>
+    <Link href="/" className={`rc-brandmark ${inverse ? "is-inverse" : ""}`}>
+      <span className="rc-brandmark-icon" aria-hidden="true"><Radar size={17} /></span>
+      <span className="rc-brandmark-name">RankCues</span>
     </Link>
   );
 }
@@ -78,6 +68,12 @@ export function MarketingHeader({ variant = "dark" }: { variant?: "dark" | "ligh
   );
 }
 
+const languages = [
+  ["en", "EN", "English"],
+  ["zh", "中", "中文"],
+  ["es", "ES", "Español"],
+] as const;
+
 export async function AppShell({
   active,
   children,
@@ -90,56 +86,64 @@ export async function AppShell({
   locale?: AppLocale;
 }) {
   const locale = providedLocale || await getLocale();
+  const allLinks = appLinkGroups.flatMap((group) => group.links);
+  const current = allLinks.find((link) => isAppLinkActive(link, active));
   return (
-    <main className="rc-workspace min-h-screen bg-[#f6f8f2] text-[#111827]">
-      <div className="grid min-h-screen min-w-0 grid-cols-[minmax(0,1fr)] lg:grid-cols-[224px_minmax(0,1fr)]">
-        <aside className="workspace-sidebar relative z-20 min-w-0 overflow-hidden border-b border-white/8 bg-[#0e0f13] px-3 py-3 text-white lg:sticky lg:top-0 lg:h-screen lg:border-b-0">
-          <div className="px-2 py-2.5"><BrandMark inverse locale={locale} /></div>
-          <div className="workspace-nav-groups">
-            {appLinkGroups.map((group) => <div key={group.en} className="workspace-nav-group">
+    <main className="rc-workspace">
+      <div className="ws-frame">
+        <aside className="ws-sidebar" aria-label={pick(locale, "Workspace navigation", "工作区导航", "Navegación")}>
+          <div className="ws-brand"><BrandMark /></div>
+          {appLinkGroups.map((group) => (
+            <div key={group.en} className="ws-nav-group">
               <p>{pick(locale, group.en, group.zh, group.es)}</p>
               <nav aria-label={pick(locale, group.en, group.zh, group.es)}>
                 {group.links.map((link) => {
                   const Icon = link.icon;
-                  const selected = active === link.href || active.startsWith(`${link.href}/`);
-                  return <Link key={link.href} href={link.href} aria-current={selected ? "page" : undefined} className="workspace-nav-link"><Icon size={16} />{navLabel(locale, link.label)}</Link>;
+                  return (
+                    <Link key={link.href} href={link.href} aria-current={isAppLinkActive(link, active) ? "page" : undefined} className="ws-nav-link">
+                      <Icon size={17} />
+                      {navLabel(locale, link.label)}
+                    </Link>
+                  );
                 })}
               </nav>
-            </div>)}
-          </div>
-          <div className="workspace-helper mt-6 hidden rounded-xl border border-white/[0.08] bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.2)] lg:block">
-            <div className="flex items-center gap-2 text-[11px] font-semibold text-white/74">
-              <CircleDot size={13} className="text-[#39d6ba]" /> {pick(locale, "Your workspace", "你的工作区", "Tu espacio")}
             </div>
-            <p className="mt-1.5 text-[10px] leading-4 text-white/65">{pick(locale, "Only connected data is shown.", "仅显示已接入的真实数据。", "Solo se muestran datos conectados.")}</p>
+          ))}
+          <div className="ws-sidebar-note">
+            <span><CircleDot size={12} /> {pick(locale, "Private beta", "内测版", "Beta privada")}</span>
+            <p>{pick(locale, "Only data from your connected sites is shown.", "仅显示你已连接网站的真实数据。", "Solo se muestran datos de tus sitios conectados.")}</p>
           </div>
         </aside>
 
-        <section className="min-w-0 max-w-full">
-          <div className="workspace-topbar sticky top-0 z-10 border-b border-[#dfe3eb] bg-white/88 px-4 py-3 backdrop-blur-xl sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="workspace-breadcrumb">{pick(locale, "Workspace", "工作区", "Espacio")} / {navLabel(locale, appLinkGroups.flatMap((group) => group.links).find((link) => active === link.href || active.startsWith(`${link.href}/`))?.label || "Overview")}</p>
-                <p className="mt-0.5 text-[9px] text-[#8b94a5]">{pick(locale, "Search intelligence workspace", "搜索情报工作区", "Espacio de inteligencia SEO")}</p>
+        <section className="ws-main">
+          <header className="ws-topbar">
+            <div className="ws-mobile-brand"><BrandMark /></div>
+            <p className="ws-title">{navLabel(locale, current?.label || "Overview")}</p>
+            <div className="ws-topbar-actions">
+              <div className="ws-lang" role="group" aria-label={pick(locale, "Interface language", "界面语言", "Idioma de la interfaz")}>
+                {languages.map(([value, short, name]) => (
+                  <form key={value} action="/api/preferences/locale" method="post">
+                    <input type="hidden" name="locale" value={value} />
+                    <button title={name} aria-pressed={locale === value}>{short}</button>
+                  </form>
+                ))}
               </div>
-              <div className="ml-auto flex items-center gap-2">
-                <div className="flex items-center rounded-lg border border-[#e3e7ef] bg-white p-0.5" aria-label={pick(locale, "Interface language", "界面语言", "Idioma de la interfaz")}>
-                  {(["en", "zh", "es"] as const).map((value) => (
-                    <form key={value} action="/api/preferences/locale" method="post">
-                      <input type="hidden" name="locale" value={value} />
-                      <button title={value === "en" ? "English" : value === "zh" ? "中文" : "Español"} className={`rounded-md px-2 py-1.5 font-mono text-[8px] font-semibold uppercase transition ${locale === value ? "bg-[#111827] text-white" : "text-[#667085] hover:bg-[#f2f4f7]"}`}>{value === "zh" ? "中" : value.toUpperCase()}</button>
-                    </form>
-                  ))}
-                </div>
-                <span className="hidden items-center gap-2 rounded-lg border border-[#e3e7ef] bg-[#f8fafc] px-3 py-2 font-mono text-[9px] uppercase tracking-[0.08em] text-[#667085] sm:inline-flex">
-                  {pick(locale, "Private beta", "内测版", "Beta privada")}
-                </span>
-                <Link href="/app/connect" className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#111827] px-3.5 text-[11px] font-semibold text-white shadow-[0_1px_2px_rgba(16,24,40,0.2),0_4px_12px_rgba(16,24,40,0.12)] transition-all duration-200 hover:bg-[#1f2937] hover:shadow-[0_2px_4px_rgba(16,24,40,0.2),0_8px_20px_rgba(16,24,40,0.16)] active:scale-[0.98]">
-                  <Plus size={14} /> {pick(locale, "Add property", "添加网站", "Añadir sitio")}
-                </Link>
-              </div>
+              <Link href="/app/connect" className="ws-button">
+                <Plus size={15} /> {pick(locale, "Add site", "添加网站", "Añadir sitio")}
+              </Link>
             </div>
-          </div>
+          </header>
+          <nav className="ws-tabs" aria-label={pick(locale, "Workspace sections", "工作区页面", "Secciones")}>
+            {allLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link key={link.href} href={link.href} aria-current={isAppLinkActive(link, active) ? "page" : undefined}>
+                  <Icon size={15} />
+                  {navLabel(locale, link.label)}
+                </Link>
+              );
+            })}
+          </nav>
           {localizeChildren ? localizeNode(children, locale) : children}
         </section>
       </div>
@@ -149,13 +153,13 @@ export async function AppShell({
 
 export function PageHeader({ kicker, title, body, action }: { kicker: string; title: string; body: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col justify-between gap-5 px-4 pb-5 pt-7 sm:px-6 lg:flex-row lg:items-end lg:px-8 lg:pt-8">
+    <div className="ws-page-header">
       <div>
-        <p className="section-kicker">{kicker}</p>
-        <h1 className="mt-2 max-w-4xl text-[clamp(1.8rem,3vw,2.65rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-[#111827]">{title}</h1>
-        <p className="mt-2 max-w-3xl text-[13px] leading-6 text-[#667085]">{body}</p>
+        <p className="ws-page-kicker">{kicker}</p>
+        <h1>{title}</h1>
+        <p className="ws-page-body">{body}</p>
       </div>
-      {action ? <div className="flex shrink-0 flex-wrap gap-2">{action}</div> : null}
+      {action ? <div className="ws-page-actions">{action}</div> : null}
     </div>
   );
 }
@@ -168,14 +172,13 @@ export function VisualFrame({ src, alt, priority = false }: { src: string; alt: 
   );
 }
 
-export function MetricCard({ label, value, detail, href, active = false }: { label: string; value: string; detail: string; href?: string; active?: boolean }) {
-  const className = `data-card group relative overflow-hidden p-4 transition duration-200 ${href ? "block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8da2ff] focus-visible:ring-offset-2 hover:-translate-y-0.5 hover:border-[#c7cffb]" : ""} ${active ? "border-[#aeb9f7] bg-[#fbfbff] shadow-[0_8px_24px_rgba(70,89,188,0.10)]" : ""}`;
+export function MetricCard({ label, value, detail, href, active = false, tone = "neutral" }: { label: string; value: string; detail: string; href?: string; active?: boolean; tone?: "neutral" | "up" | "down" }) {
+  const className = `ws-metric ${href ? "is-link" : ""} ${active ? "is-active" : ""}`;
   const content = (
     <>
-      <span className={`absolute inset-x-0 top-0 h-[2px] origin-left bg-gradient-to-r from-[#6177f2] to-[#8da2ff] transition-transform duration-300 ${active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
-      <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#8b94a5]">{label}</p>
-      <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#111827]">{value}</p>
-      <p className="mt-1 text-[10px] text-[#8b94a5]">{detail}</p>
+      <p className="ws-metric-label">{label}</p>
+      <p className="ws-metric-value">{value}</p>
+      <p className={`ws-metric-detail tone-${tone}`}>{detail}</p>
     </>
   );
   return href
@@ -184,29 +187,25 @@ export function MetricCard({ label, value, detail, href, active = false }: { lab
 }
 
 export function ActionLink({ href, children, tone = "dark" }: { href: string; children: ReactNode; tone?: "dark" | "light" | "yellow" }) {
-  const className = tone === "dark"
-    ? "bg-[#111827] text-white shadow-[0_1px_2px_rgba(16,24,40,0.2)] hover:bg-[#1f2937] hover:shadow-[0_4px_12px_rgba(16,24,40,0.2)]"
-    : tone === "yellow"
-      ? "bg-[#4f46e5] text-white shadow-[0_1px_2px_rgba(79,70,229,0.35)] hover:bg-[#4338ca] hover:shadow-[0_4px_14px_rgba(79,70,229,0.4)]"
-      : "border border-[#dfe3eb] bg-white text-[#344054] shadow-[0_1px_2px_rgba(16,24,40,0.05)] hover:border-[#c7cfdd] hover:bg-[#f8fafc]";
-  return <Link href={href} className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3.5 text-[11px] font-semibold transition-all duration-200 active:scale-[0.98] ${className}`}>{children}</Link>;
+  const className = tone === "light" ? "ws-button is-secondary" : "ws-button";
+  return <Link href={href} className={className}>{children}</Link>;
 }
 
 export function SubmitAction({ action, children }: { action: string; children: ReactNode }) {
   return (
     <form action={action} method="post">
-      <button type="submit" className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#111827] px-3.5 text-[11px] font-semibold text-white shadow-[0_1px_2px_rgba(16,24,40,0.2)] transition-all duration-200 hover:bg-[#1f2937] hover:shadow-[0_4px_12px_rgba(16,24,40,0.2)] active:scale-[0.98]">{children}</button>
+      <button type="submit" className="ws-button">{children}</button>
     </form>
   );
 }
 
 export function IconTile({ icon: Icon, title, body, href }: { icon: IconType; title: string; body: string; href: string }) {
   return (
-    <Link href={href} className="data-card group block p-5 transition duration-300 hover:-translate-y-0.5 hover:border-[#bac5f8]">
-      <span className="flex size-10 items-center justify-center rounded-xl bg-[#eef1ff] text-[#5268d9] transition-colors duration-300 group-hover:bg-[#5268d9] group-hover:text-white"><Icon size={18} /></span>
+    <Link href={href} className="data-card group block p-5">
+      <span className="flex size-10 items-center justify-center rounded-xl bg-[#eef2ff] text-[#315efb]"><Icon size={18} /></span>
       <h2 className="mt-5 text-lg font-semibold tracking-[-0.025em]">{title}</h2>
-      <p className="mt-2 text-[12px] leading-6 text-[#667085]">{body}</p>
-      <span className="mt-5 inline-flex items-center gap-2 text-[11px] font-semibold">Explore <ArrowRight size={13} className="transition group-hover:translate-x-1" /></span>
+      <p className="mt-2 text-[13px] leading-6 text-[#65718b]">{body}</p>
+      <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-semibold text-[#315efb]">Open <ArrowRight size={14} /></span>
     </Link>
   );
 }

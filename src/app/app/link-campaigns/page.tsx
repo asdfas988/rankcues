@@ -326,8 +326,10 @@ export default async function LinkCampaignsPage({ searchParams }: { searchParams
   const [params, locale, session] = await Promise.all([searchParams, getLocale(), getCurrentSession()]);
   if (!session) redirect("/login");
 
-  const selectedStatus: LinkOpportunityStatus | "all" = isOpportunityStatus(params.status) ? params.status : "all";
   const feature = getLinkCampaignPublicStatus();
+  // Paused module: only reachable when LINK_CAMPAIGNS_ENABLED=true.
+  if (!feature.enabled) redirect("/app/overview");
+  const selectedStatus: LinkOpportunityStatus | "all" = isOpportunityStatus(params.status) ? params.status : "all";
   const backlinks = getBacklinkProviderPublicStatus();
   const data = await getLinkCampaignPageData({
     workspaceId: session.workspaceId,

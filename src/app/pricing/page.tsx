@@ -89,17 +89,13 @@ export default function PricingPage() {
       <main id="main-content">
         <section className={s.pricingHero}>
           <p className={s.pill}>
-            <span /> PRICING & ACCESS
+            <span /> Pricing and access
           </p>
-          <h1>
-            A clearer view.
-            <br />
-            <span>Start with early access.</span>
-          </h1>
+          <h1>Early access, by invitation.</h1>
           <p className={s.lead}>
-            RankCues is in private beta for SEO consultants and small teams.
-            <br className={s.desktopBreak} /> Explore the workflow. Connect your
-            sites when you’re invited.
+            RankCues is in private beta for developers running many sites and
+            for SEO consultants and small teams. Try the sample on the homepage
+            now, and connect your own sites once you are invited.
           </p>
         </section>
         <section
@@ -118,7 +114,7 @@ export default function PricingPage() {
             <p className={s.kicker}>ONE CONNECTED WORKSPACE</p>
             <h2>Early access.</h2>
             <p className={s.accessSubtitle}>
-              A closer look at your clients’ search performance.
+              Every site you look after, yours or your clients&apos;.
             </p>
             <div className={s.accessTerms}>
               <strong>By invitation</strong>
@@ -136,6 +132,7 @@ export default function PricingPage() {
                 "Optional GA4 context and page snapshots",
                 "AI reports with evidence for your review",
                 "Tasks and follow-up measurement",
+                "Approved fixes drafted as GitHub pull requests or WordPress drafts",
               ].map((t) => (
                 <li key={t}>
                   <Check size={17} />

@@ -15,9 +15,6 @@ import {
   PlugZap,
   Settings,
   Upload,
-  Search,
-  Send,
-  Workflow,
   ListTodo,
 } from "lucide-react";
 
@@ -29,26 +26,30 @@ export const marketingLinks = [
   { href: "/pricing", label: "Pricing" },
 ];
 
+// The product is one loop: notice a movement, line it up with a change,
+// explain it, fix it, then verify the fix. Navigation only shows that loop.
+// Secondary views (keywords, GA4 traffic, report generator, collection log)
+// stay reachable from the screen they belong to, via `also`.
 export const appLinks = [
-  { href: "/app/overview", label: "Overview", icon: LayoutDashboard },
-  { href: "/app/connect", label: "Sites", icon: Globe2 },
-  { href: "/app/keywords", label: "Keywords", icon: Search },
-  { href: "/app/traffic", label: "Traffic", icon: BarChart3 },
-  { href: "/app/audit", label: "Changes", icon: Activity },
-  { href: "/app/backlinks", label: "Backlinks", icon: Link2 },
-  { href: "/app/link-campaigns", label: "Link campaigns", icon: Send },
-  { href: "/app/reports", label: "AI reports", icon: FileText },
-  { href: "/app/investigations", label: "Investigations", icon: FlaskConical },
-  { href: "/app/tasks", label: "Tasks", icon: ListTodo },
-  { href: "/app/automations", label: "Automations", icon: Workflow },
-  { href: "/app/settings", label: "Settings", icon: Settings },
+  { href: "/app/overview", label: "Overview", icon: LayoutDashboard, also: [] as string[] },
+  { href: "/app/audit", label: "Changes", icon: Activity, also: [] as string[] },
+  { href: "/app/investigations", label: "Investigations", icon: FlaskConical, also: ["/app/reports"] },
+  { href: "/app/tasks", label: "Tasks", icon: ListTodo, also: [] as string[] },
+  { href: "/app/connect", label: "Sites", icon: Globe2, also: ["/app/sites", "/app/keywords", "/app/traffic"] },
+  { href: "/app/settings", label: "Settings", icon: Settings, also: ["/app/automations"] },
 ];
 
-// Order navigation by the work users do, while retaining every existing route.
+// Paused modules: the code is kept (see tag archive/full-version-2026-10-09)
+// but they are no longer part of the product surface.
+export const pausedAppPaths = ["/app/backlinks", "/app/link-campaigns", "/app/outreach", "/app/content"];
+
+export function isAppLinkActive(link: { href: string; also: readonly string[] }, active: string) {
+  return [link.href, ...link.also].some((path) => active === path || active.startsWith(`${path}/`));
+}
+
 export const appLinkGroups = [
-  { en: "Daily work", zh: "日常工作", es: "Trabajo diario", paths: ["overview", "reports", "investigations", "tasks"] },
-  { en: "Explore your data", zh: "查看数据", es: "Explorar datos", paths: ["keywords", "traffic", "audit", "backlinks", "link-campaigns"] },
-  { en: "Manage", zh: "管理", es: "Gestionar", paths: ["connect", "automations", "settings"] },
+  { en: "Work", zh: "工作", es: "Trabajo", paths: ["overview", "audit", "investigations", "tasks"] },
+  { en: "Setup", zh: "配置", es: "Configuración", paths: ["connect", "settings"] },
 ].map((group) => ({ ...group, links: group.paths.flatMap((path) => appLinks.filter((link) => link.href === `/app/${path}`)) }));
 
 export const visualAssets = {

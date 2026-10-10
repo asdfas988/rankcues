@@ -9,7 +9,8 @@ type WorkerContext = { waitUntil(promise: Promise<unknown>): void };
 function pathsForCron(cron: string) {
   switch (cron) {
     case "*/2 * * * *":
-      return ["/api/cron/report-jobs", "/api/cron/link-jobs"];
+      // Link jobs are paused with the link campaign module.
+      return ["/api/cron/report-jobs"];
     case "0 3 * * *":
       return ["/api/cron/daily-sync"];
     case "0 4 * * 1":

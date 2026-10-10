@@ -5,6 +5,7 @@ import { ArrowLeft, RefreshCw, ScanSearch } from "lucide-react";
 import { AppShell, MetricCard, PageHeader } from "@/components/rankcues-ui";
 import { getSiteAnalytics, getSiteByIdOrUrl, getWeeklyEvidence } from "@/lib/data-store";
 import { getLocale, pick } from "@/lib/i18n";
+import { SiteSubnav } from "@/components/site-subnav";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -35,7 +36,7 @@ function change(current: number, previous: number) {
 function MiniTrend({ values }: { values: number[] }) {
   if (!values.length) return <div className="flex h-36 items-center justify-center text-[11px] text-[#98a2b3]">No daily data yet</div>;
   const max = Math.max(...values, 1);
-  return <div className="flex h-36 items-end gap-1.5">{values.map((value, index) => <span key={index} className="min-w-0 flex-1 rounded-t-sm bg-[#7185ee] transition hover:bg-[#5268d9]" style={{ height: `${Math.max(4, (value / max) * 100)}%` }} title={`${value} clicks`} />)}</div>;
+  return <div className="flex h-36 items-end gap-1.5">{values.map((value, index) => <span key={index} className="min-w-0 flex-1 rounded-t-sm bg-[#9fb1f5] transition hover:bg-[#2b50e6]" style={{ height: `${Math.max(4, (value / max) * 100)}%` }} title={`${value} clicks`} />)}</div>;
 }
 
 export default async function SitePage({ params }: Props) {
@@ -52,7 +53,7 @@ export default async function SitePage({ params }: Props) {
   const latestPosition = analytics.daily.at(-1)?.position ?? 0;
 
   return (
-    <AppShell active="/app/connect">
+    <AppShell active="/app/sites">
       <PageHeader
         kicker={pick(locale, "Site performance", "网站表现", "Rendimiento del sitio")}
         title={propertyName(site.siteUrl)}
@@ -61,9 +62,10 @@ export default async function SitePage({ params }: Props) {
       />
 
       <div className="grid gap-4 px-4 pb-8 sm:px-6 lg:px-8">
-        <Link href="/app/connect" className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold text-[#667085]"><ArrowLeft size={13} /> All properties</Link>
+        <Link href="/app/overview" className="inline-flex w-fit items-center gap-1.5 text-[11px] font-semibold text-[#667085]"><ArrowLeft size={13} /> All sites</Link>
+        <SiteSubnav siteId={site.id} current="performance" locale={locale} />
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="Clicks · 7 days" value={compact(currentClicks)} detail={`${clickChange >= 0 ? "+" : ""}${clickChange.toFixed(1)}% vs previous week`} />
+          <MetricCard label="Clicks · 7 days" value={compact(currentClicks)} detail={`${clickChange >= 0 ? "+" : ""}${clickChange.toFixed(1)}% vs previous week`} tone={clickChange <= -10 ? "down" : clickChange > 0 ? "up" : "neutral"} />
           <MetricCard label="Impressions · 7 days" value={compact(impressions)} detail="Imported Search Console rows" />
           <MetricCard label="CTR · 7 days" value={`${ctr.toFixed(2)}%`} detail="Clicks divided by impressions" />
           <MetricCard label="Average position" value={latestPosition ? latestPosition.toFixed(1) : "—"} detail="Latest available day" />

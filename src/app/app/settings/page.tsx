@@ -108,7 +108,7 @@ export default async function SettingsPage({ searchParams }: {
           "RankCues 统一管理 AI 与数据服务基础设施；你的团队只需连接希望分析的已验证业务数据。",
           "RankCues opera de forma centralizada la infraestructura de IA y datos; tu equipo solo conecta los datos empresariales verificados que desea analizar.",
         )}
-        action={<a href="/api/auth/google?returnTo=/app/settings" className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#111827] px-4 text-xs font-semibold text-white"><UserRound size={14} /> {pick(locale, "Reconnect Google", "重新连接 Google", "Reconectar Google")}</a>}
+        action={<><a href="/app/automations" className="ws-button is-secondary">{pick(locale, "Collection log", "采集日志", "Registro de recolección")}</a><a href="/api/auth/google?returnTo=/app/settings" className="ws-button"><UserRound size={14} /> {pick(locale, "Reconnect Google", "重新连接 Google", "Reconectar Google")}</a></>}
       />
 
       <div className="grid gap-5 px-4 pb-10 sm:px-6 lg:px-8">
