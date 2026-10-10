@@ -80,16 +80,20 @@ export async function GET(request: Request) {
     return redirectWithStatus(request, "invalid-state");
   }
 
+  let stage = "token-exchange";
   try {
     const tokens = await exchangeGoogleCode(code);
+    stage = "google-api";
     const [user, sites] = await Promise.all([
       getGoogleUserInfo(tokens.access_token),
       listGoogleSearchConsoleSites(tokens.access_token),
     ]);
+    stage = "database-authorization";
     const access = await authorizeGoogleIdentity(user.email);
     if (!access) {
       return redirectWithStatus(request, "not-invited");
     }
+    stage = "database-connection";
     const connection = await upsertGoogleConnection({
       workspaceId: access.workspaceId,
       googleSubject: user.sub,
@@ -101,11 +105,13 @@ export async function GET(request: Request) {
         : undefined,
       scopes: tokens.scope?.split(/\s+/).filter(Boolean) ?? [],
     });
+    stage = "database-sites";
     await upsertGscSites(connection.id, sites, { workspaceId: access.workspaceId });
     let ga4Count = 0;
     let ga4Status = "connected";
     try {
       const properties = await listGoogleAnalyticsProperties(tokens.access_token);
+      stage = "database-ga4";
       await upsertGa4Properties(connection.id, properties, { workspaceId: access.workspaceId });
       ga4Count = properties.length;
       ga4Status = properties.length ? "ready" : "empty";
@@ -145,6 +151,6 @@ export async function GET(request: Request) {
     return response;
   } catch (error) {
     console.error("Google OAuth callback failed", error);
-    return redirectWithStatus(request, "error", { reason: failureStage(error) });
+    return redirectWithStatus(request, "error", { reason: stage });
   }
 }
